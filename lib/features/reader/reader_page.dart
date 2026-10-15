@@ -43,7 +43,18 @@ class _ReaderPageState extends ConsumerState<ReaderPage> {
   int _sessionSeconds = 0;
   int _lastCharMark = 0;
 
-  TtsService? _tts;
+  TtsService? _ttsInstance;
+
+  /// Lazily created TTS handle. The explicit type argument on `read` keeps the
+  /// call sites free of null checks.
+  TtsService get _ttsService {
+    final existing = _ttsInstance;
+    if (existing != null) return existing;
+    final TtsService created = ref.read<TtsService>(ttsServiceProvider);
+    _ttsInstance = created;
+    return created;
+  }
+
   bool _speaking = false;
 
   @override
@@ -184,7 +195,7 @@ class _ReaderPageState extends ConsumerState<ReaderPage> {
     _flushSession();
     _persistProgress();
     _doc?.dispose();
-    _tts?.stop();
+    _ttsInstance?.stop();
     _pageController.dispose();
     super.dispose();
   }
@@ -225,8 +236,7 @@ class _ReaderPageState extends ConsumerState<ReaderPage> {
 
   Future<void> _toggleTts() async {
     final settings = ref.read(settingsControllerProvider).app;
-    final tts = _tts ?? ref.read(ttsServiceProvider);
-    _tts = tts;
+    final tts = _ttsService;
     if (_speaking) {
       await tts.stop();
       if (mounted) setState(() => _speaking = false);
@@ -258,7 +268,7 @@ class _ReaderPageState extends ConsumerState<ReaderPage> {
     if (doc == null) return;
     final text = await doc.chapterText(_index);
     if (text.trim().isEmpty) return;
-    await _tts?.speak(text);
+    await _ttsInstance?.speak(text);
   }
 
   // -------------------------------------------------------------------------

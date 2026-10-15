@@ -282,7 +282,7 @@ class _Heatmap extends StatelessWidget {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     // Align the grid so the last column is the current week.
-    final totalDays = 12 * 7;
+    const totalDays = 12 * 7;
     final start = today.subtract(Duration(days: totalDays - 1));
     final cells = List.generate(
       totalDays,

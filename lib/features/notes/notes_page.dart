@@ -96,8 +96,7 @@ class _NotesPageState extends ConsumerState<NotesPage> {
 
     for (final n in notes) {
       final book = ref.read(bookRepositoryProvider).byId(n.bookId);
-      buffer
-        ..writeln('【${book?.title ?? '未知书籍'}】第 ${n.chapterIndex + 1} 章');
+      buffer.writeln('【${book?.title ?? '未知书籍'}】第 ${n.chapterIndex + 1} 章');
       if (n.text.isNotEmpty) buffer.writeln('原文：${n.text}');
       if (n.note.isNotEmpty) buffer.writeln('笔记：${n.note}');
       buffer.writeln();
