@@ -66,7 +66,8 @@ flutter build apk --release --split-per-abi
 - **Flutter 3.24** + Material 3，Riverpod 状态管理，go_router 路由
 - **Hive** 本地存储（书籍 / 章节 / 笔记 / 阅读记录 / 设置）
 - 自研 **TXT / EPUB 解析引擎**（`archive` + `xml` + `html`，无第三方电子书依赖）
-- `file_picker` 导入、`flutter_tts` 听书、`fl_chart` 统计图表
+- 自研 **TTS 平台通道**（原生 Android `TextToSpeech` + `MethodChannel`，不依赖第三方插件）
+- `file_picker` 导入、`fl_chart` 统计图表
 
 ## 目录结构
 

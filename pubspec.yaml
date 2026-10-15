@@ -32,7 +32,6 @@ dependencies:
   fast_gbk: ^1.0.0
 
   # Reading experience
-  flutter_tts: ^4.0.2
   intl: ^0.19.0
   fl_chart: ^0.69.0
   uuid: ^4.5.1
