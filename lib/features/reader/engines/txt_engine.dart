@@ -22,6 +22,10 @@ class TxtDocument extends ReaderDocument {
 
   static const _fallbackChunkSize = 6000;
 
+  /// A single chapter larger than this is split further so the reader never has
+  /// to lay out a multi-megabyte string in one page.
+  static const _maxChapterChars = 20000;
+
   static Future<TxtDocument> open(String path, {String? rule}) async {
     final bytes = await File(path).readAsBytes();
     final decoded = decodeBytes(bytes);
@@ -84,7 +88,7 @@ class TxtDocument extends ReaderDocument {
     final matches = pattern.allMatches(text).toList();
     final chapters = <ChapterMeta>[];
 
-    if (matches.length >= 2) {
+    if (matches.isNotEmpty) {
       if (matches.first.start > 0) {
         final head = text.substring(0, matches.first.start).trim();
         if (head.isNotEmpty) {
@@ -113,8 +117,9 @@ class TxtDocument extends ReaderDocument {
       var cursor = 0;
       var i = 0;
       while (cursor < text.length) {
-        final end =
-            (cursor + _fallbackChunkSize) < text.length ? cursor + _fallbackChunkSize : text.length;
+        final end = (cursor + _fallbackChunkSize) < text.length
+            ? cursor + _fallbackChunkSize
+            : text.length;
         chapters.add(ChapterMeta(
           index: i,
           title: '第 ${i + 1} 节',
@@ -129,7 +134,41 @@ class TxtDocument extends ReaderDocument {
       }
     }
 
-    return chapters;
+    return _explodeLongChapters(chapters);
+  }
+
+  /// Splits over-long chapters into consecutive parts, keeping the title.
+  static List<ChapterMeta> _explodeLongChapters(List<ChapterMeta> chapters) {
+    final result = <ChapterMeta>[];
+    for (final chapter in chapters) {
+      if (chapter.end - chapter.start <= _maxChapterChars) {
+        result.add(ChapterMeta(
+          index: result.length,
+          title: chapter.title,
+          start: chapter.start,
+          end: chapter.end,
+          href: chapter.href,
+        ));
+        continue;
+      }
+      var start = chapter.start;
+      var part = 1;
+      while (start < chapter.end) {
+        final end = (start + _maxChapterChars) < chapter.end
+            ? start + _maxChapterChars
+            : chapter.end;
+        result.add(ChapterMeta(
+          index: result.length,
+          title: part == 1 ? chapter.title : '$part. ${chapter.title}',
+          start: start,
+          end: end,
+          href: chapter.href,
+        ));
+        start = end;
+        part++;
+      }
+    }
+    return result;
   }
 
   static RegExp _compileRule(String? rule) {

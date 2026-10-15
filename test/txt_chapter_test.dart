@@ -41,6 +41,17 @@ void main() {
       final chapters = TxtDocument.splitChapters(text, rule: r'^== .* ==$');
       expect(chapters.length, 2);
     });
+
+    test('splits an over-long chapter into numbered parts', () {
+      final body = List.filled(25000, 'a').join();
+      final text = '第一章 长章\n$body';
+      final chapters = TxtDocument.splitChapters(text);
+
+      expect(chapters.length, 2);
+      expect(chapters[0].title, '第一章 长章');
+      expect(chapters[1].title, '2. 第一章 长章');
+      expect(chapters[1].end, text.length);
+    });
   });
 
   group('TxtDocument.decodeBytes', () {
