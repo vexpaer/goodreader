@@ -12,7 +12,7 @@ import 'document.dart';
 
 /// Minimal, dependency-light EPUB 2/3 parser built directly on the ZIP + XML
 /// containers, so no third-party ebook package can break the build.
-class EpubDocument implements ReaderDocument {
+class EpubDocument extends ReaderDocument {
   EpubDocument._(
     this._path,
     this._entries,

@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
-import '../../data/models/book.dart';
+import '../../../data/models/book.dart';
 
 /// Renders a book cover, falling back to a deterministic gradient card.
 class BookCover extends StatelessWidget {

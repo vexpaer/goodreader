@@ -20,7 +20,7 @@ class ReaderSettingsSheet extends StatefulWidget {
 }
 
 class _ReaderSettingsSheetState extends State<ReaderSettingsSheet> {
-  late ReaderSettings _s = widget.settings;
+  late final ReaderSettings _s = widget.settings;
 
   static const _fonts = ['系统默认', 'serif', 'sans-serif', 'monospace'];
 

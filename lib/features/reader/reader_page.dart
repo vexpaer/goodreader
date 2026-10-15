@@ -41,7 +41,6 @@ class _ReaderPageState extends ConsumerState<ReaderPage> {
 
   DateTime _sessionStart = DateTime.now();
   int _sessionSeconds = 0;
-  int _sessionChars = 0;
   int _lastCharMark = 0;
 
   TtsService? _tts;
@@ -226,7 +225,8 @@ class _ReaderPageState extends ConsumerState<ReaderPage> {
 
   Future<void> _toggleTts() async {
     final settings = ref.read(settingsControllerProvider).app;
-    final tts = _tts ??= ref.read(ttsServiceProvider);
+    final tts = _tts ?? ref.read(ttsServiceProvider);
+    _tts = tts;
     if (_speaking) {
       await tts.stop();
       if (mounted) setState(() => _speaking = false);
@@ -331,7 +331,7 @@ class _ReaderPageState extends ConsumerState<ReaderPage> {
     if (saved == null) return;
     await ref.read(notesControllerProvider).save(
           BookNote(
-            id: '${book.id}-${_index}-${DateTime.now().microsecondsSinceEpoch}',
+            id: '${book.id}-$_index-${DateTime.now().microsecondsSinceEpoch}',
             bookId: book.id,
             type: NoteType.thought,
             chapterIndex: _index,

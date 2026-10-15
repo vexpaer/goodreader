@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/book.dart';
-import '../../data/repositories/stats_repository.dart';
 import '../../state/providers.dart';
 
 class StatsPage extends ConsumerWidget {

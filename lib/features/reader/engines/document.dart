@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import '../../data/models/chapter.dart';
+import '../../../data/models/chapter.dart';
 
 /// Result of opening a book file.
 class OpenedBook {

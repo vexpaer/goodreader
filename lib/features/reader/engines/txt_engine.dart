@@ -9,7 +9,7 @@ import 'document.dart';
 
 /// Splits a plain text book into chapters using headings, with a fallback to
 /// fixed-size chunks so that every TXT file is readable.
-class TxtDocument implements ReaderDocument {
+class TxtDocument extends ReaderDocument {
   TxtDocument._(this._text, this.chapters);
 
   final String _text;
