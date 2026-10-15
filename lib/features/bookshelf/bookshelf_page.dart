@@ -232,13 +232,14 @@ class _GridView extends StatelessWidget {
   }
 }
 
-class _GridTile extends StatelessWidget {
+class _GridTile extends ConsumerWidget {
   const _GridTile({required this.book});
 
   final Book book;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final fit = ref.watch(settingsControllerProvider).app.coverFill.boxFit;
     return InkWell(
       borderRadius: BorderRadius.circular(12),
       onTap: () => context.push('/reader/${book.id}'),
@@ -250,7 +251,12 @@ class _GridTile extends StatelessWidget {
             child: LayoutBuilder(
               builder: (context, c) => Stack(
                 children: [
-                  BookCover(book: book, width: c.maxWidth, height: c.maxHeight),
+                  BookCover(
+                    book: book,
+                    width: c.maxWidth,
+                    height: c.maxHeight,
+                    fit: fit,
+                  ),
                   if (book.progress > 0)
                     Positioned(
                       left: 0,
@@ -264,6 +270,33 @@ class _GridTile extends StatelessWidget {
                           value: book.progress,
                           minHeight: 3,
                           backgroundColor: Colors.black26,
+                        ),
+                      ),
+                    ),
+                  if (book.isFavorite)
+                    const Positioned(
+                      right: 6,
+                      top: 6,
+                      child: Icon(Icons.favorite,
+                          size: 14, color: Colors.redAccent),
+                    ),
+                  if (book.progress > 0 && book.progress < 1)
+                    Positioned(
+                      right: 6,
+                      bottom: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 5, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: Colors.black54,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          '${(book.progress * 100).round()}%',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                          ),
                         ),
                       ),
                     ),

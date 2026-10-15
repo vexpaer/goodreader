@@ -193,4 +193,47 @@ class TxtDocument extends ReaderDocument {
 
   /// The whole decoded source, used by full-text search.
   String get fullText => _text;
+
+  /// Index of the chapter that contains [offset].
+  int chapterIndexAt(int offset) {
+    var low = 0;
+    var high = chapters.length - 1;
+    while (low <= high) {
+      final mid = (low + high) ~/ 2;
+      final c = chapters[mid];
+      if (offset < c.start) {
+        high = mid - 1;
+      } else if (offset >= c.end) {
+        low = mid + 1;
+      } else {
+        return mid;
+      }
+    }
+    return low.clamp(0, chapters.length - 1);
+  }
+
+  @override
+  Future<List<SearchHit>> search(String query, {int limit = 200}) async {
+    final needle = query.trim().toLowerCase();
+    if (needle.isEmpty) return const [];
+
+    final haystack = _text.toLowerCase();
+    final hits = <SearchHit>[];
+    var from = 0;
+
+    while (hits.length < limit) {
+      final at = haystack.indexOf(needle, from);
+      if (at < 0) break;
+      final chapterIndex = chapterIndexAt(at);
+      hits.add(SearchHit(
+        chapterIndex: chapterIndex,
+        chapterTitle: chapters[chapterIndex].title,
+        start: at - chapters[chapterIndex].start,
+        end: at - chapters[chapterIndex].start + needle.length,
+        snippet: buildSnippet(_text, at, needle.length),
+      ));
+      from = at + needle.length;
+    }
+    return hits;
+  }
 }

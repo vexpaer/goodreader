@@ -13,6 +13,7 @@ import '../data/repositories/note_repository.dart';
 import '../data/repositories/settings_repository.dart';
 import '../data/repositories/stats_repository.dart';
 import '../services/import_service.dart';
+import '../services/native_service.dart';
 import '../services/tts_service.dart';
 import 'package:uuid/uuid.dart';
 
@@ -38,6 +39,9 @@ final ttsServiceProvider = Provider<TtsService>((ref) {
   ref.onDispose(service.dispose);
   return service;
 });
+
+final nativeServiceProvider =
+    Provider<NativeService>((_) => const NativeService());
 
 // ---------------------------------------------------------------------------
 // Settings

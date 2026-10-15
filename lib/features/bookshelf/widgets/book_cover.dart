@@ -12,12 +12,14 @@ class BookCover extends StatelessWidget {
     this.width = 110,
     this.height = 160,
     this.radius = 10,
+    this.fit = BoxFit.cover,
   });
 
   final Book book;
   final double width;
   final double height;
   final double radius;
+  final BoxFit fit;
 
   static const _palette = [
     [Color(0xFF1F6FEB), Color(0xFF4A9BFF)],
@@ -44,7 +46,7 @@ class BookCover extends StatelessWidget {
         File(path),
         width: width,
         height: height,
-        fit: BoxFit.cover,
+        fit: fit,
         errorBuilder: (_, __, ___) => _placeholder(context),
       );
     } else {

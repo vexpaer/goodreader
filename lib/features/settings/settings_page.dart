@@ -112,6 +112,23 @@ class SettingsPage extends ConsumerWidget {
                         controller.updateApp((a) => a.shelfView = s.first),
                   ),
                 ),
+                const Divider(height: 1),
+                ListTile(
+                  title: const Text('封面填充'),
+                  subtitle: Text(app.coverFill.label),
+                  trailing: SegmentedButton<CoverFill>(
+                    segments: const [
+                      ButtonSegment(value: CoverFill.crop, label: Text('裁剪')),
+                      ButtonSegment(value: CoverFill.fit, label: Text('完整')),
+                      ButtonSegment(
+                          value: CoverFill.stretch, label: Text('拉伸')),
+                    ],
+                    selected: {app.coverFill},
+                    showSelectedIcon: false,
+                    onSelectionChanged: (s) =>
+                        controller.updateApp((a) => a.coverFill = s.first),
+                  ),
+                ),
               ],
             ),
           ),

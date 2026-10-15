@@ -274,6 +274,33 @@ class EpubDocument extends ReaderDocument {
   }
 
   String get path => _path;
+
+  @override
+  Future<List<SearchHit>> search(String query, {int limit = 200}) async {
+    final needle = query.trim().toLowerCase();
+    if (needle.isEmpty) return const [];
+
+    final hits = <SearchHit>[];
+    for (var i = 0; i < chapters.length && hits.length < limit; i++) {
+      final text = await chapterText(i);
+      if (text.isEmpty) continue;
+      final haystack = text.toLowerCase();
+      var from = 0;
+      while (hits.length < limit) {
+        final at = haystack.indexOf(needle, from);
+        if (at < 0) break;
+        hits.add(SearchHit(
+          chapterIndex: i,
+          chapterTitle: chapters[i].title,
+          start: at,
+          end: at + needle.length,
+          snippet: buildSnippet(text, at, needle.length),
+        ));
+        from = at + needle.length;
+      }
+    }
+    return hits;
+  }
 }
 
 class _ManifestItem {
