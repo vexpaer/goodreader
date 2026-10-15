@@ -97,8 +97,10 @@ void main() {
 
   group('firstVisibleIndex', () {
     test('skips spaces and ideographic spaces', () {
-      expect(firstVisibleIndex('\u3000\u3000 甲'), 4);
+      // Two ideographic spaces plus one ASCII space precede the character.
+      expect(firstVisibleIndex('\u3000\u3000 甲'), 3);
       expect(firstVisibleIndex('   '), -1);
+      expect(firstVisibleIndex('甲'), 0);
     });
   });
 }
