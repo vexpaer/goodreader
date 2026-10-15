@@ -1,0 +1,81 @@
+name: Android CI
+
+on:
+  push:
+    branches: [main, master]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Analyze, test and build APK
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.24.5"
+          channel: stable
+          cache: true
+
+      - name: Show toolchain versions
+        run: |
+          flutter --version
+          dart --version
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Static analysis
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Unit tests
+        run: flutter test
+
+      - name: Build release APKs (per ABI)
+        run: flutter build apk --release --split-per-abi
+
+      - name: Build universal release APK
+        run: flutter build apk --release
+
+      - name: Rename artifacts
+        run: |
+          mkdir -p dist
+          cp build/app/outputs/flutter-apk/app-release.apk \
+             dist/goodreader-${GITHUB_REF_NAME}-universal.apk
+          for f in build/app/outputs/flutter-apk/app-*-release.apk; do
+            cp "$f" "dist/goodreader-${GITHUB_REF_NAME}-$(basename "$f" | sed 's/app-//;s/-release.apk//').apk"
+          done
+          ls -lh dist
+
+      - name: Upload APK artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: goodreader-apk
+          path: dist/*.apk
+          retention-days: 30
+
+      - name: Attach APKs to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.apk
+          generate_release_notes: true
+          draft: false

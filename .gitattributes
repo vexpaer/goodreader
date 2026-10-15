@@ -1,0 +1,17 @@
+# Normalize line endings so Linux CI gets LF where it matters.
+* text=auto eol=lf
+
+# Windows-only scripts keep CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary assets are never converted.
+*.jar binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ttf binary
+*.otf binary
+*.so binary
+*.apk binary
