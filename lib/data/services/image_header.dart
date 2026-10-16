@@ -17,7 +17,7 @@ import 'dart:typed_data';
   }
   if (b.length < 24) return null;
   // 8 字节签名加 4 字节长度加 4 字节 'IHDR'，之后是宽高。
-  return (_be32(b, 16), _be32(b, 20));
+  return (width: _be32(b, 16), height: _be32(b, 20));
 }
 
 ({int width, int height})? _jpeg(Uint8List b) {
@@ -33,7 +33,7 @@ import 'dart:typed_data';
         marker != 0xC8 &&
         marker != 0xCC) {
       // 2 字节段长，1 字节精度，2 字节高，2 字节宽。
-      return (_be16(b, offset + 7), _be16(b, offset + 5));
+      return (width: _be16(b, offset + 7), height: _be16(b, offset + 5));
     }
     final segmentLength = (b[offset + 2] << 8) | b[offset + 3];
     if (segmentLength < 2) return null;
@@ -51,20 +51,23 @@ import 'dart:typed_data';
     case 'VP8X':
       if (b.length < 30) return null;
       return (
-        1 + _u24le(b, 24),
-        1 + _u24le(b, 27),
+        width: 1 + _u24le(b, 24),
+        height: 1 + _u24le(b, 27),
       );
     case 'VP8L':
       if (b.length < 26) return null;
       // 1 字节签名之后是 14 位宽减 1、14 位高减 1。
       final bits = _le32(b, 21);
-      return ((bits & 0x3FFF) + 1, ((bits >> 14) & 0x3FFF) + 1);
+      return (
+        width: (bits & 0x3FFF) + 1,
+        height: ((bits >> 14) & 0x3FFF) + 1,
+      );
     case 'VP8 ':
       // 3 字节帧标签之后是同步码，同步码之后是宽高。
       const sync = 0x9D;
       for (var i = 20; i + 8 < b.length; i++) {
         if (b[i] != sync) continue;
-        return (_le16(b, i + 3), _le16(b, i + 5));
+        return (width: _le16(b, i + 3), height: _le16(b, i + 5));
       }
       return null;
     default:
