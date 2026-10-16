@@ -12,6 +12,7 @@ class HiveBoxes {
   static const notes = 'notes';
   static const sessions = 'sessions';
   static const settings = 'settings';
+  static const borders = 'borders';
 }
 
 class HiveSetup {
@@ -33,6 +34,7 @@ class HiveSetup {
       Hive.openBox<BookNote>(HiveBoxes.notes),
       Hive.openBox<ReadingSession>(HiveBoxes.sessions),
       Hive.openBox<dynamic>(HiveBoxes.settings),
+      Hive.openBox<dynamic>(HiveBoxes.borders),
     ]);
 
     _ready = true;

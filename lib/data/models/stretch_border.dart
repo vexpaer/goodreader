@@ -166,6 +166,7 @@ class StretchBorder {
     int stretchBottom = 0,
     SafeArea? safe,
     StretchMode mode = StretchMode.both,
+    double imageScale = 1.0,
   }) {
     final w = math.max(3, width);
     final h = math.max(3, height);
@@ -178,6 +179,7 @@ class StretchBorder {
       stretchBottom: stretchBottom.clamp(1, h),
       safe: safe ?? const SafeArea(),
       mode: mode,
+      imageScale: imageScale.clamp(0.05, 1.0),
     );
   }
 
@@ -206,6 +208,9 @@ class StretchBorder {
   final SafeArea safe;
   final StretchMode mode;
 
+  /// 边框图在卡片上的显示比例，百分比越小花纹越细。
+  final double imageScale;
+
   Rect get stretchRect => Rect.fromLTRB(
         stretchLeft.toDouble(),
         stretchTop.toDouble(),
@@ -232,6 +237,7 @@ class StretchBorder {
     int? stretchBottom,
     SafeArea? safe,
     StretchMode? mode,
+    double? imageScale,
   }) =>
       StretchBorder.create(
         width: width,
@@ -242,6 +248,7 @@ class StretchBorder {
         stretchBottom: stretchBottom ?? this.stretchBottom,
         safe: safe ?? this.safe,
         mode: mode ?? this.mode,
+        imageScale: imageScale ?? this.imageScale,
       );
 
   /// 把边框铺到 [card] 上。[scale] 是边框图宽度的显示比例。
@@ -250,10 +257,10 @@ class StretchBorder {
   /// 四个角跟着一起等比缩放所以花纹会变粗变细，然后再按 9-patch 让中间的
   /// 块吃掉剩余空间。缩放系数还有三个上界，各自防止溢出：图不高于卡片、
   /// 四个角不宽于卡片、四个角不高于卡片。
-  StretchLayout layout(Size card, {double scale = 1.0}) {
+  StretchLayout layout(Size card, {double? scale}) {
     if (card.width <= 0 || card.height <= 0) return StretchLayout.empty;
 
-    final requested = scale.clamp(0.05, 1.0);
+    final requested = (scale ?? imageScale).clamp(0.05, 1.0);
     var u = requested * card.width / width;
     u = math.min(u, card.height / height);
 
@@ -330,7 +337,8 @@ class StretchBorder {
       other.stretchRight == stretchRight &&
       other.stretchBottom == stretchBottom &&
       other.safe == safe &&
-      other.mode == mode;
+      other.mode == mode &&
+      other.imageScale == imageScale;
 
   @override
   int get hashCode => Object.hash(
@@ -342,5 +350,6 @@ class StretchBorder {
         stretchBottom,
         safe,
         mode,
+        imageScale,
       );
 }

@@ -9,6 +9,7 @@ import '../data/models/book.dart';
 import '../data/models/note.dart';
 import '../data/models/reading_session.dart';
 import '../data/repositories/book_repository.dart';
+import '../data/repositories/border_repository.dart';
 import '../data/repositories/note_repository.dart';
 import '../data/repositories/settings_repository.dart';
 import '../data/repositories/stats_repository.dart';
@@ -46,6 +47,9 @@ final nativeServiceProvider =
 
 final updateServiceProvider =
     Provider<UpdateService>((_) => const UpdateService());
+
+final borderRepositoryProvider =
+    Provider<BorderRepository>((_) => BorderRepository());
 
 // ---------------------------------------------------------------------------
 // Settings

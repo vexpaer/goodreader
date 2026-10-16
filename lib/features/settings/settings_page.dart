@@ -271,6 +271,14 @@ class SettingsPage extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
+                  leading: const Icon(Icons.crop_free),
+                  title: const Text('边框图库'),
+                  subtitle: const Text('为分享海报设计可伸缩的边框花纹'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/borders'),
+                ),
+                const Divider(height: 1),
+                ListTile(
                   leading: const Icon(Icons.map_outlined),
                   title: const Text('功能路线图'),
                   subtitle: const Text('查看已实现与规划中的功能'),
