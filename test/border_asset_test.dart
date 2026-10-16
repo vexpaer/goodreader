@@ -18,7 +18,7 @@ BorderAsset sample() => BorderAsset(
         stretchRight: 330,
         stretchBottom: 440,
         safe: const SafeArea(left: 0.12, top: 0.18, right: 0.14, bottom: 0.22),
-        mode: StretchMode.horizontal,
+        mode: BorderStretchMode.horizontal,
         imageScale: 0.4,
       ),
     );
@@ -39,7 +39,7 @@ void main() {
       expect(restored.cut.stretchTop, 120);
       expect(restored.cut.stretchRight, 330);
       expect(restored.cut.stretchBottom, 440);
-      expect(restored.cut.mode, StretchMode.horizontal);
+      expect(restored.cut.mode, BorderStretchMode.horizontal);
       expect(restored.cut.imageScale, closeTo(0.4, 1e-9));
       expect(restored.cut.safe.left, closeTo(0.12, 1e-9));
       expect(restored.cut.safe.top, closeTo(0.18, 1e-9));
@@ -56,7 +56,7 @@ void main() {
         height: 300,
       );
       expect(asset.cut.isGuessCut, isTrue);
-      expect(asset.cut.mode, StretchMode.both);
+      expect(asset.cut.mode, BorderStretchMode.both);
       expect(asset.cut.imageScale, 1.0);
     });
   });
@@ -108,7 +108,7 @@ void main() {
         'height': 10,
         'mode': 99,
       })!;
-      expect(restored.cut.mode, StretchMode.both);
+      expect(restored.cut.mode, BorderStretchMode.both);
       expect(restored.cut.imageScale, 1.0);
     });
 

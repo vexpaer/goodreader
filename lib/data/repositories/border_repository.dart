@@ -1,7 +1,5 @@
-import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
-import 'dart:ui' as ui;
 
 import 'package:crypto/crypto.dart';
 import 'package:file_picker/file_picker.dart';
@@ -10,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../db/hive_setup.dart';
 import '../models/border_asset.dart';
+import '../services/image_header.dart';
 
 /// 边框花纹图库。图片文件放在应用私有目录，索引存在 Hive。
 class BorderRepository {
@@ -60,8 +59,8 @@ class BorderRepository {
       final id = md5.convert(bytes).toString();
       if (known.contains(id)) continue;
 
-      final size = await decodeImageSize(bytes);
-      if (size == null) continue;
+      final size = readImageHeaderSize(bytes);
+      if (size == null || size.width < 3 || size.height < 3) continue;
 
       final target = File('${dir.path}/$id.$ext');
       if (!target.existsSync()) await target.writeAsBytes(bytes);
@@ -108,21 +107,4 @@ class BorderRepository {
     final dot = fileName.lastIndexOf('.');
     return dot <= 0 ? fileName : fileName.substring(0, dot);
   }
-}
-
-/// 解出图片的像素尺寸。非图片字节返回 null。
-Future<({int width, int height})?> decodeImageSize(Uint8List bytes) {
-  final completer = Completer<({int width, int height})?>();
-  ui.decodeImageFromList(
-    bytes,
-    (image) {
-      final size = (width: image.width, height: image.height);
-      image.dispose();
-      if (!completer.isCompleted) completer.complete(size);
-    },
-    onError: () {
-      if (!completer.isCompleted) completer.complete(null);
-    },
-  );
-  return completer.future;
 }

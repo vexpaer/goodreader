@@ -79,8 +79,8 @@ class BorderAsset {
               : 0.10,
         ),
         mode: modeIndex is int && modeIndex >= 0 && modeIndex < 3
-            ? StretchMode.values[modeIndex]
-            : StretchMode.both,
+            ? BorderStretchMode.values[modeIndex]
+            : BorderStretchMode.both,
         imageScale: raw['imageScale'] is num
             ? (raw['imageScale'] as num).toDouble()
             : 1.0,

@@ -4,10 +4,10 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../data/models/border_asset.dart';
 import '../../data/models/stretch_border.dart';
+import '../../data/services/image_header.dart';
 import '../../state/providers.dart';
 import 'widgets/border_preview.dart';
 
@@ -15,16 +15,19 @@ Future<ui.Image?> loadBorderImage(String path) async {
   final file = File(path);
   if (!file.existsSync()) return null;
   final bytes = await file.readAsBytes();
+  final header = readImageHeaderSize(bytes);
+  if (header == null) return null;
   final completer = Completer<ui.Image?>();
-  ui.decodeImageFromList(
-    bytes,
-    (image) {
-      if (!completer.isCompleted) completer.complete(image);
-    },
-    onError: () {
-      if (!completer.isCompleted) completer.complete(null);
-    },
-  );
+  try {
+    ui.decodeImageFromList(
+      bytes,
+      (image) {
+        if (!completer.isCompleted) completer.complete(image);
+      },
+    );
+  } on Object {
+    if (!completer.isCompleted) completer.complete(null);
+  }
   return completer.future;
 }
 
@@ -211,20 +214,20 @@ class _BorderDesignerPageState extends ConsumerState<BorderDesignerPage> {
       children: [
         _groupTitle('伸缩方式'),
         const SizedBox(height: 8),
-        SegmentedButton<StretchMode>(
+        SegmentedButton<BorderStretchMode>(
           segments: const [
             ButtonSegment(
-              value: StretchMode.both,
+              value: BorderStretchMode.both,
               label: Text('全部'),
               tooltip: '横竖都能拉，适合四角都有装饰的边框',
             ),
             ButtonSegment(
-              value: StretchMode.horizontal,
+              value: BorderStretchMode.horizontal,
               label: Text('水平'),
               tooltip: '只横向拉，高度固定，适合横条花边',
             ),
             ButtonSegment(
-              value: StretchMode.vertical,
+              value: BorderStretchMode.vertical,
               label: Text('垂直'),
               tooltip: '只纵向拉，宽度固定，适合竖条花边',
             ),

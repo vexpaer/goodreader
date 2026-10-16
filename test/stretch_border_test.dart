@@ -164,7 +164,7 @@ void main() {
         stretchTop: 0,
         stretchRight: 300,
         stretchBottom: 60,
-        mode: StretchMode.horizontal,
+        mode: BorderStretchMode.horizontal,
       );
       final l = b.layout(const Size(600, 400));
       expectTilesFillBand(l, 'horizontal');
@@ -184,7 +184,7 @@ void main() {
         stretchTop: 0,
         stretchRight: 60,
         stretchBottom: 300,
-        mode: StretchMode.vertical,
+        mode: BorderStretchMode.vertical,
       );
       final l = b.layout(const Size(400, 600));
       expectTilesFillBand(l, 'vertical');
@@ -285,7 +285,7 @@ void main() {
       expect(a, b);
       expect(a.hashCode, b.hashCode);
       expect(a.copyWith(stretchLeft: 10), isNot(a));
-      expect(a.copyWith(mode: StretchMode.vertical).mode, StretchMode.vertical);
+      expect(a.copyWith(mode: BorderStretchMode.vertical).mode, BorderStretchMode.vertical);
     });
 
     test('copyWith 经过校验，写坏的值仍被夹回', () {

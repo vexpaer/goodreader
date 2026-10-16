@@ -1,7 +1,7 @@
 /// 一张边框花纹图的切割与铺放方式。
 ///
 /// 边框图按「四角 / 四边 / 中心」九块切分。四个角保持原尺寸，其余块按
-/// [StretchMode] 决定的方向拉伸。三个概念各自独立存放，互不推导。
+/// [BorderStretchMode] 决定的方向拉伸。三个概念各自独立存放，互不推导。
 ///
 /// * **可拉伸矩形**（源图像素）决定四个角与四条边的边界。
 /// * **安全框**（卡片比例）决定卡片上文字与图标可以占的范围。安全框与边框
@@ -14,7 +14,7 @@
 import 'dart:math' as math;
 import 'dart:ui';
 
-enum StretchMode {
+enum BorderStretchMode {
   /// 横竖都能拉，适合四角都有装饰的边框。
   both,
 
@@ -25,15 +25,15 @@ enum StretchMode {
   vertical,
 }
 
-extension StretchModeLabel on StretchMode {
+extension BorderStretchModeLabel on BorderStretchMode {
   String get label => switch (this) {
-        StretchMode.both => '全部',
-        StretchMode.horizontal => '水平',
-        StretchMode.vertical => '垂直',
+        BorderStretchMode.both => '全部',
+        BorderStretchMode.horizontal => '水平',
+        BorderStretchMode.vertical => '垂直',
       };
 
-  bool get stretchesX => this != StretchMode.vertical;
-  bool get stretchesY => this != StretchMode.horizontal;
+  bool get stretchesX => this != BorderStretchMode.vertical;
+  bool get stretchesY => this != BorderStretchMode.horizontal;
 }
 
 /// 卡片上文字与图标可占的范围，按卡片宽高的比例表示。
@@ -155,6 +155,7 @@ class StretchBorder {
     required this.stretchBottom,
     required this.safe,
     required this.mode,
+    required this.imageScale,
   });
 
   factory StretchBorder.create({
@@ -165,7 +166,7 @@ class StretchBorder {
     int stretchRight = 0,
     int stretchBottom = 0,
     SafeArea? safe,
-    StretchMode mode = StretchMode.both,
+    BorderStretchMode mode = BorderStretchMode.both,
     double imageScale = 1.0,
   }) {
     final w = math.max(3, width);
@@ -206,7 +207,7 @@ class StretchBorder {
   final int stretchRight;
   final int stretchBottom;
   final SafeArea safe;
-  final StretchMode mode;
+  final BorderStretchMode mode;
 
   /// 边框图在卡片上的显示比例，百分比越小花纹越细。
   final double imageScale;
@@ -236,7 +237,7 @@ class StretchBorder {
     int? stretchRight,
     int? stretchBottom,
     SafeArea? safe,
-    StretchMode? mode,
+    BorderStretchMode? mode,
     double? imageScale,
   }) =>
       StretchBorder.create(
