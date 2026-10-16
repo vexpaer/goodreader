@@ -50,7 +50,7 @@ class WebDavBackend extends SyncBackend {
   }
 
   @override
-  Future<void> put(String path, String content) => _guard(() async {
+  Future<void> put(String path, String content) => guard(() async {
         final response = await _transport.put(
           _url(path),
           headers: {
@@ -65,7 +65,7 @@ class WebDavBackend extends SyncBackend {
       });
 
   @override
-  Future<String?> get(String path) => _guard(() async {
+  Future<String?> get(String path) => guard(() async {
         final response = await _transport.get(
           _url(path),
           headers: {'authorization': authorizationHeader},

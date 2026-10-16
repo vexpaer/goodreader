@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:goodreader/services/http_transport.dart';
+import 'package:goodreader/services/sync/sync_backend.dart';
 import 'package:goodreader/services/sync/webdav_backend.dart';
 
 class FakeTransport extends HttpTransport {
