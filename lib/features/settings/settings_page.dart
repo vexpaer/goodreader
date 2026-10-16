@@ -271,6 +271,22 @@ class SettingsPage extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
+                  leading: const Icon(Icons.cloud_queue_outlined),
+                  title: const Text('服务'),
+                  subtitle: const Text('AI 助手 / 云同步 / 识别 / 听书 / 书源'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/services'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.auto_awesome_outlined),
+                  title: const Text('阅读助手'),
+                  subtitle: const Text('总结、挑句子、分析人物'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/ai'),
+                ),
+                const Divider(height: 1),
+                ListTile(
                   leading: const Icon(Icons.crop_free),
                   title: const Text('边框图库'),
                   subtitle: const Text('为分享海报设计可伸缩的边框花纹'),

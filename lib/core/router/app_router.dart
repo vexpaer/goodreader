@@ -6,6 +6,8 @@ import '../../features/home/home_shell.dart';
 import '../../features/reader/reader_page.dart';
 import '../../features/settings/update_page.dart';
 import '../../features/share/border_designer_page.dart';
+import '../../features/ai/ai_chat_page.dart';
+import '../../features/services/service_providers_page.dart';
 import '../../features/share/border_gallery_page.dart';
 
 final appRouter = GoRouter(
@@ -22,6 +24,20 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/borders',
       builder: (context, state) => const BorderGalleryPage(),
+    ),
+    GoRoute(
+      path: '/services',
+      builder: (context, state) => const ServiceProvidersPage(),
+    ),
+    GoRoute(
+      path: '/ai',
+      builder: (context, state) => const AiChatPage(),
+    ),
+    GoRoute(
+      path: '/ai/:id',
+      builder: (context, state) => AiChatPage(
+        bookId: state.pathParameters['id']!,
+      ),
     ),
     GoRoute(
       path: '/borders/:id',
