@@ -5,9 +5,9 @@ import 'package:goodreader/services/sync/sync_backend.dart';
 import 'package:goodreader/services/sync/sync_service.dart';
 
 class FakeBackend extends SyncBackend {
-  FakeBackend({this.files = const {}});
+  FakeBackend({Map<String, String>? files}) : files = files ?? <String, String>{};
 
-  /// key 是带目录的完整路径。
+  /// key 是带目录的完整路径。会被 put 与 delete 修改。
   final Map<String, String> files;
 
   final List<String> calls = [];
