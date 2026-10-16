@@ -119,12 +119,12 @@ class IoHttpTransport extends HttpTransport {
     Map<String, String>? headers,
     Object? body,
   }) =>
-      _send(() {
+      _send(() async {
         final request = http.Request(method, url)
           ..headers.addAll(_merge(headers));
         final encoded = _encode(body);
         if (encoded != null) request.body = encoded;
-        return request.send().then((r) => http.Response.fromStream(r));
+        return http.Response.fromStream(await request.send());
       });
 
   @override

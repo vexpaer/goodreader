@@ -35,6 +35,15 @@ class FakeTransport extends HttpTransport {
       _record('POST', url, headers, body);
 
   @override
+  Future<TransportResponse> send(
+    String method,
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+  }) =>
+      _record(method, url, headers, body);
+
+  @override
   Future<TransportResponse> put(
     Uri url, {
     Map<String, String>? headers,
@@ -320,5 +329,14 @@ class _ThrowingTransport extends HttpTransport {
 
   @override
   Future<TransportResponse> delete(Uri url, {Map<String, String>? headers}) =>
+      Future.error(const TransportException('no route'));
+
+  @override
+  Future<TransportResponse> send(
+    String method,
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+  }) =>
       Future.error(const TransportException('no route'));
 }
