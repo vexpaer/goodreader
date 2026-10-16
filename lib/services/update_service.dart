@@ -107,13 +107,27 @@ class VersionNumber implements Comparable<VersionNumber> {
   String toString() => parts.join('.');
 }
 
-/// Queries the GitHub releases API and downloads APK artifacts.
+/// Queries GitHub for the latest release and downloads APK artifacts.
+///
+/// The REST API is tried first because it carries the release notes and the
+/// exact asset list. Unauthenticated API calls are limited to 60 per hour per
+/// IP, so when that fails the service falls back to the `/releases/latest`
+/// redirect, which is not rate limited, and reconstructs the download URL from
+/// the naming convention this project's CI uses.
 class UpdateService {
   const UpdateService();
 
   static const _userAgent = 'GoodReader-Android';
 
   Future<UpdateCheckResult> check() async {
+    final viaApi = await _checkViaApi();
+    if (viaApi.status != UpdateStatus.failed) return viaApi;
+
+    final viaRedirect = await _checkViaRedirect();
+    return viaRedirect.status == UpdateStatus.failed ? viaApi : viaRedirect;
+  }
+
+  Future<UpdateCheckResult> _checkViaApi() async {
     final client = HttpClient()
       ..connectionTimeout = const Duration(seconds: 15);
     try {
@@ -131,6 +145,12 @@ class UpdateService {
           message: '仓库还没有发布任何版本',
         );
       }
+      if (response.statusCode == 403 || response.statusCode == 429) {
+        return const UpdateCheckResult(
+          status: UpdateStatus.failed,
+          message: 'GitHub 接口访问受限（可能触发了限流），正在尝试其他方式',
+        );
+      }
       if (response.statusCode != 200) {
         return UpdateCheckResult(
           status: UpdateStatus.failed,
@@ -139,16 +159,7 @@ class UpdateService {
       }
 
       final json = jsonDecode(body) as Map<String, dynamic>;
-      final release = _parseRelease(json);
-      final current = VersionNumber.parse(AppInfo.version);
-      final latest = VersionNumber.parse(release.tag);
-
-      return UpdateCheckResult(
-        status: latest > current
-            ? UpdateStatus.updateAvailable
-            : UpdateStatus.upToDate,
-        release: release,
-      );
+      return _resultFor(_parseRelease(json));
     } on SocketException {
       return const UpdateCheckResult(
         status: UpdateStatus.failed,
@@ -162,6 +173,81 @@ class UpdateService {
     } finally {
       client.close(force: true);
     }
+  }
+
+  /// Reads the tag from the `/releases/latest` redirect without touching the API.
+  Future<UpdateCheckResult> _checkViaRedirect() async {
+    final client = HttpClient()
+      ..connectionTimeout = const Duration(seconds: 15)
+      ..followRedirects = false;
+    try {
+      final request = await client.getUrl(
+        Uri.parse('https://github.com/${AppInfo.repository}/releases/latest'),
+      );
+      request.headers.set(HttpHeaders.userAgentHeader, _userAgent);
+      final response = await request.close();
+      await response.drain<void>();
+
+      final location = response.headers.value(HttpHeaders.locationHeader);
+      if (location == null || location.isEmpty) {
+        return const UpdateCheckResult(
+          status: UpdateStatus.failed,
+          message: '无法获取最新版本信息',
+        );
+      }
+
+      final segments =
+          location.split('/').where((s) => s.isNotEmpty).toList();
+      if (segments.isEmpty) {
+        return const UpdateCheckResult(
+          status: UpdateStatus.failed,
+          message: '无法解析最新版本号',
+        );
+      }
+      final tag = segments.last;
+
+      // The CI workflow names the universal build after the tag.
+      final assetName = 'goodreader-$tag-universal.apk';
+      final release = ReleaseInfo(
+        tag: tag,
+        name: tag,
+        notes: '',
+        pageUrl: location,
+        publishedAt: null,
+        assets: [
+          ReleaseAsset(
+            name: assetName,
+            url: 'https://github.com/${AppInfo.repository}/releases/download/'
+                '$tag/$assetName',
+            size: 0,
+          ),
+        ],
+      );
+      return _resultFor(release);
+    } on SocketException {
+      return const UpdateCheckResult(
+        status: UpdateStatus.failed,
+        message: '网络不可用，请检查连接后重试',
+      );
+    } catch (e) {
+      return UpdateCheckResult(
+        status: UpdateStatus.failed,
+        message: '检查更新失败：$e',
+      );
+    } finally {
+      client.close(force: true);
+    }
+  }
+
+  UpdateCheckResult _resultFor(ReleaseInfo release) {
+    final current = VersionNumber.parse(AppInfo.version);
+    final latest = VersionNumber.parse(release.tag);
+    return UpdateCheckResult(
+      status: latest > current
+          ? UpdateStatus.updateAvailable
+          : UpdateStatus.upToDate,
+      release: release,
+    );
   }
 
   ReleaseInfo _parseRelease(Map<String, dynamic> json) {

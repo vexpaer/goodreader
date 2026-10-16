@@ -9,12 +9,12 @@ class AppInfo {
 
   static const version = String.fromEnvironment(
     'APP_VERSION',
-    defaultValue: '0.3.0',
+    defaultValue: '0.3.1',
   );
 
   static const build = String.fromEnvironment(
     'APP_BUILD',
-    defaultValue: '3',
+    defaultValue: '4',
   );
 
   static const repository = String.fromEnvironment(

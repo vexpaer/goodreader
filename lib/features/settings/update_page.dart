@@ -210,7 +210,7 @@ class _UpdatePageState extends ConsumerState<UpdatePage> {
                   leading: const Icon(Icons.android),
                   title: Text(asset.name,
                       maxLines: 1, overflow: TextOverflow.ellipsis),
-                  subtitle: Text(asset.sizeLabel),
+                  subtitle: Text(asset.size > 0 ? asset.sizeLabel : '点击下方按钮开始下载'),
                 ),
               ),
             const SizedBox(height: 16),
@@ -254,7 +254,9 @@ class _UpdatePageState extends ConsumerState<UpdatePage> {
               FilledButton.icon(
                 onPressed: () => _download(release),
                 icon: const Icon(Icons.download),
-                label: Text('下载 APK（${asset.sizeLabel}）'),
+                label: Text(asset.size > 0
+                    ? '下载 APK（${asset.sizeLabel}）'
+                    : '下载 APK'),
               ),
             ],
             if (_downloadError != null) ...[
