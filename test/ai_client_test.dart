@@ -55,7 +55,9 @@ class FakeTransport extends HttpTransport {
     callCount++;
     lastUrl = url;
     lastHeaders = headers;
-    lastBody = body;
+    // 真实传输层在发送前把 Map 编码成 JSON，假实现必须照做，否则上层拿到
+    // 的是 Dart 对象而不是线上的字节。
+    lastBody = body is String ? body : jsonEncode(body);
     return TransportResponse(
       statusCode: statusCode,
       body: responseBody,
