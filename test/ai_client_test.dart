@@ -172,7 +172,7 @@ void main() {
         );
 
     test('401 映射为 unauthorized', () async {
-      final t = FakeTransport(statusCode: 401, body: errorBody('Invalid API key'));
+      final t = FakeTransport(statusCode: 401, responseBody: errorBody('Invalid API key'));
       await expectLater(
         callWith(t),
         throwsA(isA<AiException>()
@@ -182,7 +182,7 @@ void main() {
     });
 
     test('403 同样映射为 unauthorized', () async {
-      final t = FakeTransport(statusCode: 403, body: errorBody('forbidden'));
+      final t = FakeTransport(statusCode: 403, responseBody: errorBody('forbidden'));
       await expectLater(
         callWith(t),
         throwsA(isA<AiException>()
@@ -192,7 +192,7 @@ void main() {
 
     test('402 与 429 映射为 rateLimited', () async {
       for (final code in [402, 429]) {
-        final t = FakeTransport(statusCode: code, body: errorBody('quota'));
+        final t = FakeTransport(statusCode: code, responseBody: errorBody('quota'));
         await expectLater(
           callWith(t),
           throwsA(isA<AiException>()
@@ -202,7 +202,7 @@ void main() {
     });
 
     test('500 带上服务端给的一句话', () async {
-      final t = FakeTransport(statusCode: 500, body: errorBody('upstream overloaded'));
+      final t = FakeTransport(statusCode: 500, responseBody: errorBody('upstream overloaded'));
       await expectLater(
         callWith(t),
         throwsA(isA<AiException>()
