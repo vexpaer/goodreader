@@ -94,8 +94,10 @@ lib/
 
 `assets/convert/` 下的简繁转换表由 `scripts/generate_convert_tables.py` 生成，来源：
 
-- Unicode **Unihan** `Unihan_Variants.txt`（单字简繁变体）
-- **OpenCC** `STPhrases` / `TSPhrases` / `TWVariants` / `HKVariants`（Apache-2.0）
+- **OpenCC**（Apache-2.0）`STCharacters` / `TSCharacters`（单字）、`STPhrases` / `TSPhrases`（词组）、`TWVariants` / `HKVariants`（地区字形）
+- Unicode **Unihan** `Unihan_Variants.txt`，仅用于补充 OpenCC 未收录的字
+
+所有映射都保证 **UTF-16 长度不变**（生成时强制过滤），所以切换简繁不会让划线、书签、搜索偏移错位；`test/chinese_convert_test.dart` 会在 CI 里校验这一不变量。
 
 运行 `python scripts/generate_convert_tables.py --workdir <含源文件的目录>` 可重新生成。
 

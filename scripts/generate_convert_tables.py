@@ -3,11 +3,19 @@
 
 Sources
 -------
-* Unicode Unihan ``Unihan_Variants.txt`` for single character variants
-  (``kSimplifiedVariant`` / ``kTraditionalVariant``).
-  https://www.unicode.org/Public/UCD/latest/ucd/Unihan.zip
-* OpenCC phrase and regional variant dictionaries (Apache-2.0).
+* OpenCC dictionaries (Apache-2.0), which are curated for conversion and list
+  context-ordered candidates for ambiguous characters:
+  ``STCharacters`` / ``TSCharacters`` (single characters),
+  ``STPhrases`` / ``TSPhrases`` (phrases),
+  ``TWVariants`` / ``HKVariants`` (regional glyph standards).
   https://github.com/BYVoid/OpenCC
+* Unicode Unihan ``Unihan_Variants.txt`` as a supplement for characters OpenCC
+  does not cover (``kSimplifiedVariant`` / ``kTraditionalVariant``).
+  https://www.unicode.org/Public/UCD/latest/ucd/Unihan.zip
+
+Only the first candidate of each entry is used, and every mapping is required to
+keep the same UTF-16 length so the reader's highlight and bookmark offsets stay
+valid when the script is switched.
 
 Outputs ``assets/convert/*.txt`` as ``key<TAB>value`` pairs, which
 ``lib/features/reader/convert/chinese_convert.dart`` loads at runtime.
@@ -28,11 +36,27 @@ import zipfile
 OPENCC_BASE = "https://raw.githubusercontent.com/BYVoid/OpenCC/master/data/dictionary"
 
 OPENCC_FILES = {
+    "s2t_chars.txt": "STCharacters.txt",
+    "t2s_chars.txt": "TSCharacters.txt",
     "s2t_phrases.txt": "STPhrases.txt",
     "t2s_phrases.txt": "TSPhrases.txt",
     "tw_chars.txt": "TWVariants.txt",
     "hk_chars.txt": "HKVariants.txt",
 }
+
+
+def utf16_len(text: str) -> int:
+    """Length in UTF-16 code units, which is what Dart string offsets count.
+
+    A few Unihan mappings swap a BMP character for one outside the BMP (or the
+    other way round). Those change the offset arithmetic the reader relies on,
+    so they are dropped.
+    """
+    return len(text.encode("utf-16-le")) // 2
+
+
+def keep(key: str, value: str) -> bool:
+    return bool(key) and bool(value) and key != value and utf16_len(key) == utf16_len(value)
 
 
 def load_opencc(path: str) -> list[tuple[str, str]]:
@@ -46,7 +70,7 @@ def load_opencc(path: str) -> list[tuple[str, str]]:
                 continue
             key = parts[0].strip()
             value = parts[1].split()[0].strip()
-            if key and value and key != value:
+            if keep(key, value):
                 pairs.append((key, value))
     return pairs
 
@@ -72,7 +96,7 @@ def load_unihan(workdir: str) -> tuple[list, list]:
             first = chr(int(variants[0][2:], 16))
         except ValueError:
             continue
-        if len(char) != 1 or len(first) != 1 or char == first:
+        if not keep(char, first):
             continue
         if field == "kTraditionalVariant":
             s2t.append((char, first))
@@ -101,9 +125,7 @@ def main() -> None:
 
     os.makedirs(args.out, exist_ok=True)
 
-    s2t_chars, t2s_chars = load_unihan(args.workdir)
-    write_pairs(os.path.join(args.out, "s2t_chars.txt"), s2t_chars)
-    write_pairs(os.path.join(args.out, "t2s_chars.txt"), t2s_chars)
+    unihan_s2t, unihan_t2s = load_unihan(args.workdir)
 
     for target, source in OPENCC_FILES.items():
         source_path = os.path.join(args.workdir, source)
@@ -111,7 +133,17 @@ def main() -> None:
             raise SystemExit(
                 f"missing {source_path}; download it from {OPENCC_BASE}/{source}"
             )
-        write_pairs(os.path.join(args.out, target), sorted(set(load_opencc(source_path))))
+        pairs = sorted(set(load_opencc(source_path)))
+
+        # Supplement the single character tables with anything OpenCC omits.
+        if target == "s2t_chars.txt":
+            known = {key for key, _ in pairs}
+            pairs = sorted(set(pairs) | {p for p in unihan_s2t if p[0] not in known})
+        elif target == "t2s_chars.txt":
+            known = {key for key, _ in pairs}
+            pairs = sorted(set(pairs) | {p for p in unihan_t2s if p[0] not in known})
+
+        write_pairs(os.path.join(args.out, target), pairs)
 
 
 if __name__ == "__main__":
