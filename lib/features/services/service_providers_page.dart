@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../data/models/book.dart';
 import '../../data/models/service_endpoint.dart';
@@ -28,8 +27,16 @@ class _ServiceProvidersPageState extends ConsumerState<ServiceProvidersPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('服务'),
-        subtitle: const Text('自己填地址与密钥，不经过任何第三方'),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: const [
+            Text('服务'),
+            Text(
+              '自己填地址与密钥，不经过任何第三方',
+              style: TextStyle(fontSize: 12),
+            ),
+          ],
+        ),
       ),
       body: ListView(
         padding: const EdgeInsets.only(bottom: 32),
@@ -149,10 +156,12 @@ class _KindSection extends StatelessWidget {
           )
         else
           for (final endpoint in endpoints)
-            RadioListTile<String>(
-              value: endpoint.id,
-              groupValue: activeId,
-              onChanged: endpoint.enabled ? (_) => onPick(endpoint) : null,
+            ListTile(
+              leading: Radio<String>(
+                value: endpoint.id,
+                groupValue: activeId,
+                onChanged: endpoint.enabled ? (_) => onPick(endpoint) : null,
+              ),
               title: Text(endpoint.label),
               subtitle: Text(
                 '${endpoint.normalizedBaseUrl.isEmpty ? '未填地址' : endpoint.normalizedBaseUrl}'
@@ -161,9 +170,6 @@ class _KindSection extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              secondary: endpoint.enabled
-                  ? null
-                  : const Icon(Icons.pause_circle_outline, size: 18),
               trailing: PopupMenuButton<String>(
                 onSelected: (value) {
                   if (value == 'edit') onEdit(endpoint);

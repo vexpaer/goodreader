@@ -1,5 +1,4 @@
-import 'dart:convert';
-
+import 'package:collection/collection.dart';
 import 'package:goodreader/services/http_transport.dart';
 
 /// 一轮对话里的一条消息。

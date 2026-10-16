@@ -145,10 +145,19 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_book?.title ?? '阅读助手'),
-        subtitle: endpoint == null
-            ? const Text('未配置服务')
-            : Text(endpoint.label + (endpoint.model.isEmpty ? '' : ' · ${endpoint.model}')),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(_book?.title ?? '阅读助手'),
+            Text(
+              endpoint == null
+                  ? '未配置服务'
+                  : endpoint.label +
+                      (endpoint.model.isEmpty ? '' : ' · ${endpoint.model}'),
+              style: const TextStyle(fontSize: 12),
+            ),
+          ],
+        ),
         actions: [
           if (_messages.isNotEmpty)
             IconButton(

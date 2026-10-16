@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flutter_test/flutter_test.dart';
+
 import 'package:goodreader/services/ai/ai_client.dart';
 import 'package:goodreader/services/http_transport.dart';
 
@@ -113,7 +115,7 @@ void main() {
         maxHistory: 2,
       );
 
-      final sent = jsonDecode(transport.lastBody as String) as Map<String, dynamic>;
+      final sent = jsonDecode(transport.lastBody! as String) as Map<String, dynamic>;
       expect(sent['model'], 'glm-4-air');
       expect(sent['stream'], false);
       expect(sent['temperature'], 0.3);
@@ -136,7 +138,7 @@ void main() {
         model: 'm',
         history: [ChatMessage(role: 'user', content: 'hi')],
       );
-      final sent = jsonDecode(transport.lastBody as String) as Map<String, dynamic>;
+      final sent = jsonDecode(transport.lastBody! as String) as Map<String, dynamic>;
       final messages = sent['messages'] as List;
       expect((messages.first as Map)['content'], AiClient.systemPrompt);
       // 空密钥不带 authorization 头，本地 Ollama 就是这样。
