@@ -178,12 +178,13 @@ class UpdateService {
   /// Reads the tag from the `/releases/latest` redirect without touching the API.
   Future<UpdateCheckResult> _checkViaRedirect() async {
     final client = HttpClient()
-      ..connectionTimeout = const Duration(seconds: 15)
-      ..followRedirects = false;
+      ..connectionTimeout = const Duration(seconds: 15);
     try {
       final request = await client.getUrl(
         Uri.parse('https://github.com/${AppInfo.repository}/releases/latest'),
       );
+      // Redirect control lives on the request, not the client.
+      request.followRedirects = false;
       request.headers.set(HttpHeaders.userAgentHeader, _userAgent);
       final response = await request.close();
       await response.drain<void>();

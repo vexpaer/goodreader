@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:goodreader/data/models/text_conversion.dart';
 import 'package:goodreader/features/reader/convert/chinese_convert.dart';
 
 void main() {
