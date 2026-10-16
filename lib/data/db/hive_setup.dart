@@ -13,6 +13,9 @@ class HiveBoxes {
   static const sessions = 'sessions';
   static const settings = 'settings';
   static const borders = 'borders';
+  static const serviceEndpoints = 'serviceEndpoints';
+  static const serviceSecrets = 'serviceSecrets';
+  static const aiConversations = 'aiConversations';
 }
 
 class HiveSetup {
@@ -35,6 +38,9 @@ class HiveSetup {
       Hive.openBox<ReadingSession>(HiveBoxes.sessions),
       Hive.openBox<dynamic>(HiveBoxes.settings),
       Hive.openBox<dynamic>(HiveBoxes.borders),
+      Hive.openBox<dynamic>(HiveBoxes.serviceEndpoints),
+      Hive.openBox<dynamic>(HiveBoxes.serviceSecrets),
+      Hive.openBox<dynamic>(HiveBoxes.aiConversations),
     ]);
 
     _ready = true;
