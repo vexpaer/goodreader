@@ -20,7 +20,7 @@ void main() {
     test('normalizedBaseUrl 去掉末尾斜杠并补协议', () {
       expect(sample().normalizedBaseUrl, 'https://api.deepseek.com/v1');
       expect(
-        const ServiceEndpoint(
+        ServiceEndpoint(
           id: 'a',
           kind: ServiceKind.sync,
           label: 'l',
@@ -29,7 +29,7 @@ void main() {
         'https://dav.example.com/dav',
       );
       expect(
-        const ServiceEndpoint(
+        ServiceEndpoint(
           id: 'a',
           kind: ServiceKind.sync,
           label: 'l',
@@ -38,7 +38,7 @@ void main() {
         'http://localhost:1234/v1',
       );
       expect(
-        const ServiceEndpoint(
+        ServiceEndpoint(
           id: 'a',
           kind: ServiceKind.ai,
           label: 'l',

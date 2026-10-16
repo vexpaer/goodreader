@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 ///
 /// 只带客户端需要的字段，避免把 `http` 包的类型泄漏到业务层。
 class TransportResponse {
-  const TransportResponse({
+  TransportResponse({
     required this.statusCode,
     required this.body,
     this.headers = const {},
