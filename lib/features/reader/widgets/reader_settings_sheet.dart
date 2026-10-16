@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../data/models/text_conversion.dart';
 import '../../../data/repositories/settings_repository.dart';
 
 /// Bottom sheet with every reader typography, header/footer and page-turn knob.
@@ -151,6 +152,68 @@ class _ReaderSettingsSheetState extends State<ReaderSettingsSheet> {
                   },
                 );
               }).toList(),
+            ),
+            const SizedBox(height: 16),
+            _label('简繁转换'),
+            Wrap(
+              spacing: 8,
+              children: ChineseConversion.values
+                  .map((mode) => ChoiceChip(
+                        label: Text(mode.label),
+                        selected: _s.chineseConversion == mode,
+                        onSelected: (_) =>
+                            _apply((s) => s.chineseConversion = mode),
+                      ))
+                  .toList(),
+            ),
+            if (_s.chineseConversion == ChineseConversion.toTraditional) ...[
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                children: TraditionalVariant.values
+                    .map((variant) => ChoiceChip(
+                          label: Text(variant.label),
+                          selected: _s.traditionalVariant == variant,
+                          onSelected: (_) =>
+                              _apply((s) => s.traditionalVariant = variant),
+                        ))
+                    .toList(),
+              ),
+            ],
+            const Divider(height: 32),
+            _label('阅读模式'),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('上下滚动阅读'),
+              subtitle: const Text('连续滚动，读到章节底部自动进入下一章'),
+              value: _s.scrollMode,
+              onChanged: (v) => _apply((s) => s.scrollMode = v),
+            ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('双指缩放'),
+              subtitle: const Text('双指捏合放大页面，放大后可单指拖动'),
+              value: _s.pinchZoom,
+              onChanged: (v) => _apply((s) => s.pinchZoom = v),
+            ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('墨水屏模式'),
+              subtitle: const Text('关闭翻页动画与动效，界面不投影'),
+              value: _s.einkMode,
+              onChanged: (v) => _apply((s) => s.einkMode = v),
+            ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('翻页音效'),
+              value: _s.pageTurnSound,
+              onChanged: (v) => _apply((s) => s.pageTurnSound = v),
+            ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('翻页振动'),
+              value: _s.pageTurnHaptic,
+              onChanged: (v) => _apply((s) => s.pageTurnHaptic = v),
             ),
             const Divider(height: 32),
             _label('页眉页脚'),

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/book_detail/book_detail_page.dart';
 import '../../features/home/home_shell.dart';
 import '../../features/reader/reader_page.dart';
+import '../../features/settings/update_page.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
@@ -11,6 +12,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/',
       builder: (context, state) => const HomeShell(),
+    ),
+    GoRoute(
+      path: '/update',
+      builder: (context, state) => const UpdatePage(),
     ),
     GoRoute(
       path: '/book/:id',

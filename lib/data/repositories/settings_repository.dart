@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
 import '../db/hive_setup.dart';
+import '../models/text_conversion.dart';
 
 /// Built-in reader background themes.
 enum ReaderTheme {
@@ -130,6 +131,13 @@ class ReaderSettings {
     this.brightness = -1,
     this.highlightColor = 0xFFFFD54F,
     this.verticalText = false,
+    this.chineseConversion = ChineseConversion.none,
+    this.traditionalVariant = TraditionalVariant.standard,
+    this.einkMode = false,
+    this.scrollMode = false,
+    this.pinchZoom = true,
+    this.pageTurnSound = false,
+    this.pageTurnHaptic = true,
   });
 
   ReaderTheme theme;
@@ -167,6 +175,22 @@ class ReaderSettings {
 
   bool verticalText;
 
+  /// Script conversion applied to every chapter before rendering.
+  ChineseConversion chineseConversion;
+  TraditionalVariant traditionalVariant;
+
+  /// E-ink friendly rendering: no page animation, flat chrome, high contrast.
+  bool einkMode;
+
+  /// Continuous vertical scrolling instead of page-by-page turning.
+  bool scrollMode;
+
+  /// Allows pinch-to-zoom on the page content.
+  bool pinchZoom;
+
+  bool pageTurnSound;
+  bool pageTurnHaptic;
+
   Map<String, dynamic> toMap() => {
         'theme': theme.index,
         'fontSize': fontSize,
@@ -190,6 +214,13 @@ class ReaderSettings {
         'brightness': brightness,
         'highlightColor': highlightColor,
         'verticalText': verticalText,
+        'chineseConversion': chineseConversion.index,
+        'traditionalVariant': traditionalVariant.index,
+        'einkMode': einkMode,
+        'scrollMode': scrollMode,
+        'pinchZoom': pinchZoom,
+        'pageTurnSound': pageTurnSound,
+        'pageTurnHaptic': pageTurnHaptic,
       };
 
   static ReaderSettings fromMap(Map<dynamic, dynamic>? m) {
@@ -224,6 +255,15 @@ class ReaderSettings {
       brightness: pick<num>('brightness', -1).toDouble(),
       highlightColor: pick('highlightColor', 0xFFFFD54F),
       verticalText: pick('verticalText', false),
+      chineseConversion: ChineseConversion.values[
+          pick('chineseConversion', ChineseConversion.none.index)],
+      traditionalVariant: TraditionalVariant.values[
+          pick('traditionalVariant', TraditionalVariant.standard.index)],
+      einkMode: pick('einkMode', false),
+      scrollMode: pick('scrollMode', false),
+      pinchZoom: pick('pinchZoom', true),
+      pageTurnSound: pick('pageTurnSound', false),
+      pageTurnHaptic: pick('pageTurnHaptic', true),
     );
   }
 }

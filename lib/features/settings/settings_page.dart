@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../core/app_info.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../state/providers.dart';
 
@@ -257,7 +259,15 @@ class SettingsPage extends ConsumerWidget {
                 ListTile(
                   leading: const Icon(Icons.info_outline),
                   title: const Text('GoodReader'),
-                  subtitle: const Text('版本 0.1.0 · 免费开源'),
+                  subtitle: Text('版本 ${AppInfo.displayVersion} · 免费开源'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.system_update_alt),
+                  title: const Text('检查更新'),
+                  subtitle: const Text('从 GitHub Releases 获取最新版本'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/update'),
                 ),
                 const Divider(height: 1),
                 ListTile(

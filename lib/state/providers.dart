@@ -15,6 +15,7 @@ import '../data/repositories/stats_repository.dart';
 import '../services/import_service.dart';
 import '../services/native_service.dart';
 import '../services/tts_service.dart';
+import '../services/update_service.dart';
 import 'package:uuid/uuid.dart';
 
 const _uuid = Uuid();
@@ -42,6 +43,9 @@ final ttsServiceProvider = Provider<TtsService>((ref) {
 
 final nativeServiceProvider =
     Provider<NativeService>((_) => const NativeService());
+
+final updateServiceProvider =
+    Provider<UpdateService>((_) => const UpdateService());
 
 // ---------------------------------------------------------------------------
 // Settings

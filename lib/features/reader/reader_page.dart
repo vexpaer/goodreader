@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/book.dart';
@@ -10,6 +11,7 @@ import '../../data/repositories/settings_repository.dart';
 import '../../services/native_service.dart';
 import '../../services/tts_service.dart';
 import '../../state/providers.dart';
+import 'convert/chinese_convert.dart';
 import 'engines/document.dart';
 import 'engines/epub_engine.dart';
 import 'engines/txt_engine.dart';
@@ -18,6 +20,7 @@ import 'widgets/catalog_sheet.dart';
 import 'widgets/page_turn.dart';
 import 'widgets/reader_menu.dart';
 import 'widgets/reader_settings_sheet.dart';
+import 'widgets/zoomable.dart';
 
 /// Highlight palette offered by the selection menu.
 const highlightPalette = <int>[
@@ -78,6 +81,9 @@ class _ReaderPageState extends ConsumerState<ReaderPage> {
 
   List<String> _searchHistory = const [];
   double? _brightnessOverride;
+  ChineseConverter? _converter;
+  bool _zoomed = false;
+  DateTime _lastChapterAdvance = DateTime.fromMillisecondsSinceEpoch(0);
 
   /// One extra page after the last chapter renders the "已读完" screen.
   int get _pageCount => _chapters.length + 1;
@@ -121,6 +127,13 @@ class _ReaderPageState extends ConsumerState<ReaderPage> {
             '${book.format.label} 阅读引擎将在后续版本开放，当前支持 TXT / EPUB。',
           ),
       };
+
+      // Conversion tables ship as assets; a failure here must not block reading.
+      try {
+        _converter = await ChineseConverter.instance();
+      } catch (_) {
+        _converter = null;
+      }
 
       var chapters = doc.chapters;
       final stored = repo.chaptersOf(book.id);
@@ -585,6 +598,27 @@ class _ReaderPageState extends ConsumerState<ReaderPage> {
 
   Widget _buildGestureLayer(ReaderSettings settings) {
     final size = MediaQuery.of(context).size;
+    final turnStyle = _effectiveTurnStyle(settings);
+
+    final Widget content = settings.scrollMode
+        ? NotificationListener<ScrollNotification>(
+            onNotification: _handleScrollOverscroll,
+            child: _buildPage(_index, settings),
+          )
+        : PageView.builder(
+            controller: _pageController,
+            physics: (turnStyle == PageTurnStyle.none || _zoomed)
+                ? const NeverScrollableScrollPhysics()
+                : const PageScrollPhysics(),
+            itemCount: _pageCount,
+            onPageChanged: _onPageChanged,
+            itemBuilder: (context, i) => PageTurn(
+              controller: _pageController,
+              index: i,
+              style: turnStyle,
+              child: _buildPage(i, settings),
+            ),
+          );
 
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
@@ -602,64 +636,104 @@ class _ReaderPageState extends ConsumerState<ReaderPage> {
           setState(() => _toolbarVisible = true);
         }
       },
-      onVerticalDragStart: (d) => _dragStart = d.globalPosition,
-      onVerticalDragEnd: (_) => _dragStart = null,
-      onVerticalDragCancel: () => _dragStart = null,
-      onVerticalDragUpdate: (d) {
-        final start = _dragStart;
-        if (start == null) return;
-        _handleVerticalDrag(start, d.primaryDelta ?? 0, size);
-      },
-      child: PageView.builder(
-        controller: _pageController,
-        physics: settings.pageTurnStyle == PageTurnStyle.none
-            ? const NeverScrollableScrollPhysics()
-            : const PageScrollPhysics(),
-        itemCount: _pageCount,
-        onPageChanged: (i) {
-          _flushSession();
-          setState(() {
-            _index = i;
-            _scrollOffset = 0;
-          });
-          _persistProgress();
+      // In scroll mode the page scrolls vertically, so the edge drags would
+      // fight the scroll view for the same axis.
+      onVerticalDragStart: settings.scrollMode
+          ? null
+          : (d) => _dragStart = d.globalPosition,
+      onVerticalDragEnd: settings.scrollMode ? null : (_) => _dragStart = null,
+      onVerticalDragCancel: settings.scrollMode ? null : () => _dragStart = null,
+      onVerticalDragUpdate: settings.scrollMode
+          ? null
+          : (d) {
+              final start = _dragStart;
+              if (start == null) return;
+              _handleVerticalDrag(start, d.primaryDelta ?? 0, size);
+            },
+      child: ZoomableView(
+        enabled: settings.pinchZoom,
+        resetToken: _index,
+        onZoomChanged: (zoomed) {
+          if (zoomed != _zoomed) setState(() => _zoomed = zoomed);
         },
-        itemBuilder: (context, i) {
-          final page = i >= _chapters.length
-              ? _FinishPage(
-                  key: const ValueKey('finish'),
-                  book: _book!,
-                  theme: settings.theme,
-                  chapters: _chapters,
-                  onAddTag: _addTagFromFinish,
-                  onRestart: () => _goToPage(0, animate: false),
-                  onExit: () => Navigator.of(context).maybePop(),
-                )
-              : _ChapterView(
-                  key: ValueKey('chapter-$i'),
-                  chapterIndex: i,
-                  chapters: _chapters,
-                  doc: _doc!,
-                  settings: settings,
-                  bookId: _book!.id,
-                  macroContext: _macroContext,
-                  jumpOffset: _pendingJumpOffset,
-                  onScroll: (offset) => _scrollOffset = offset,
-                  onHighlight: (text, start, end) =>
-                      _pickHighlightColor(text, start, end),
-                  onNote: _addNote,
-                );
-
-          return PageTurn(
-            controller: _pageController,
-            index: i,
-            style: settings.pageTurnStyle,
-            child: page,
-          );
-        },
+        child: content,
       ),
     );
   }
+
+  /// E-ink mode suppresses page animations entirely.
+  PageTurnStyle _effectiveTurnStyle(ReaderSettings settings) =>
+      settings.einkMode ? PageTurnStyle.none : settings.pageTurnStyle;
+
+  Widget _buildPage(int index, ReaderSettings settings) {
+    if (index >= _chapters.length) {
+      return _FinishPage(
+        key: const ValueKey('finish'),
+        book: _book!,
+        theme: settings.theme,
+        chapters: _chapters,
+        onAddTag: _addTagFromFinish,
+        onRestart: () => _goToPage(0, animate: false),
+        onExit: () => Navigator.of(context).maybePop(),
+      );
+    }
+
+    return _ChapterView(
+      key: ValueKey('chapter-$index'),
+      chapterIndex: index,
+      chapters: _chapters,
+      doc: _doc!,
+      settings: settings,
+      bookId: _book!.id,
+      converter: _converter,
+      macroContext: _macroContext,
+      jumpOffset: _pendingJumpOffset,
+      physics: (settings.scrollMode || _zoomed)
+          ? const NeverScrollableScrollPhysics()
+          : null,
+      onScroll: (offset) => _scrollOffset = offset,
+      onHighlight: (text, start, end) => _pickHighlightColor(text, start, end),
+      onNote: _addNote,
+    );
+  }
+
+  void _onPageChanged(int index) {
+    final settings = ref.read(settingsControllerProvider).reader;
+    if (!settings.einkMode) {
+      if (settings.pageTurnSound) SystemSound.play(SystemSoundType.click);
+      if (settings.pageTurnHaptic) HapticFeedback.selectionClick();
+    }
+    _flushSession();
+    setState(() {
+      _index = index;
+      _scrollOffset = 0;
+      _zoomed = false;
+    });
+    _persistProgress();
+  }
+
+  /// Advances to the next chapter when the reader pulls past the bottom of a
+  /// continuously scrolling chapter.
+  bool _handleScrollOverscroll(ScrollNotification notification) {
+    if (notification is! OverscrollNotification) return false;
+    final now = DateTime.now();
+    if (now.difference(_lastChapterAdvance).inMilliseconds < 700) return false;
+
+    final metrics = notification.metrics;
+    if (notification.overscroll > 0 &&
+        metrics.pixels >= metrics.maxScrollExtent - 1 &&
+        _index + 1 < _pageCount) {
+      _lastChapterAdvance = now;
+      _goToPage(_index + 1, animate: false);
+    } else if (notification.overscroll < 0 &&
+        metrics.pixels <= metrics.minScrollExtent + 1 &&
+        _index > 0) {
+      _lastChapterAdvance = now;
+      _goToPage(_index - 1, animate: false);
+    }
+    return false;
+  }
+
 
   _MacroContext get _macroContext => _MacroContext(
         bookTitle: _book?.title ?? '',
@@ -681,6 +755,7 @@ class _ReaderPageState extends ConsumerState<ReaderPage> {
         chapterTitle: _onFinishPage ? '已读完' : _chapters[_index].title,
         progressLabel: '${(_overallProgress * 100).toStringAsFixed(1)}%',
         speaking: _speaking,
+        flat: ref.read(settingsControllerProvider).reader.einkMode,
         onBack: () => Navigator.of(context).maybePop(),
         onCatalog: _showCatalog,
         onNotes: _showNotes,
@@ -704,6 +779,7 @@ class _ReaderPageState extends ConsumerState<ReaderPage> {
         bookProgress: _overallProgress,
         autoPageSeconds: settings.autoPageSeconds,
         speaking: _speaking,
+        flat: settings.einkMode,
         onSeek: (v) => _goToPage(v, animate: false),
         onPrev: () => _goToPage(_index - 1),
         onNext: () => _goToPage(_index + 1),
@@ -1116,8 +1192,10 @@ class _ChapterView extends ConsumerStatefulWidget {
     required this.doc,
     required this.settings,
     required this.bookId,
+    required this.converter,
     required this.macroContext,
     required this.jumpOffset,
+    required this.physics,
     required this.onScroll,
     required this.onHighlight,
     required this.onNote,
@@ -1128,8 +1206,12 @@ class _ChapterView extends ConsumerStatefulWidget {
   final ReaderDocument doc;
   final ReaderSettings settings;
   final String bookId;
+  final ChineseConverter? converter;
   final _MacroContext macroContext;
   final int jumpOffset;
+
+  /// Overrides the scroll behaviour, e.g. locked while the page is zoomed.
+  final ScrollPhysics? physics;
   final ValueChanged<double> onScroll;
   final Future<void> Function(String text, int start, int end) onHighlight;
   final Future<void> Function(String text, int start, int end) onNote;
@@ -1165,7 +1247,16 @@ class _ChapterViewState extends ConsumerState<_ChapterView> {
   }
 
   Future<void> _load() async {
-    final text = await widget.doc.chapterText(widget.chapterIndex);
+    final raw = await widget.doc.chapterText(widget.chapterIndex);
+    final settings = widget.settings;
+    // Conversion tables are character-count preserving, so the offsets used by
+    // highlights and bookmarks stay valid across script switches.
+    final text = widget.converter?.convert(
+          raw,
+          settings.chineseConversion,
+          settings.traditionalVariant,
+        ) ??
+        raw;
     if (!mounted) return;
     setState(() => _text = text);
 
@@ -1176,6 +1267,17 @@ class _ChapterViewState extends ConsumerState<_ChapterView> {
         final ratio = (widget.jumpOffset / text.length).clamp(0.0, 1.0);
         _scrollController.jumpTo(max * ratio);
       });
+    }
+  }
+
+  @override
+  void didUpdateWidget(_ChapterView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final before = oldWidget.settings;
+    final after = widget.settings;
+    if (before.chineseConversion != after.chineseConversion ||
+        before.traditionalVariant != after.traditionalVariant) {
+      _load();
     }
   }
 
@@ -1219,6 +1321,7 @@ class _ChapterViewState extends ConsumerState<_ChapterView> {
       decoration: _borderDecoration(settings, theme),
       child: SingleChildScrollView(
         controller: _scrollController,
+        physics: widget.physics,
         padding: EdgeInsets.symmetric(
           horizontal: settings.pageMargin + 6,
           vertical: 18,

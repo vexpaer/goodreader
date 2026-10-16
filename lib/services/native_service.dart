@@ -32,6 +32,18 @@ class NativeService {
     await _invoke<void>('screen.keepOn', {'enabled': enabled});
   }
 
+  /// Hands a downloaded APK to the system package installer.
+  Future<bool> installApk(String path) async {
+    final ok = await _invoke<bool>('install', {'path': path});
+    return ok ?? false;
+  }
+
+  /// Opens an external URL in the user's browser.
+  Future<bool> openUrl(String url) async {
+    final ok = await _invoke<bool>('openUrl', {'url': url});
+    return ok ?? false;
+  }
+
   Future<BatteryState?> battery() async {
     try {
       final raw = await _channel.invokeMethod<Map<dynamic, dynamic>>('battery');

@@ -19,14 +19,17 @@
 | EPUB 引擎 | ✅ | 自研 ZIP + OPF 解析，spine 章节顺序，NCX / EPUB3 nav 目录标题 |
 | 阅读器 | ✅ | 章节翻页、点击左中右翻页、目录跳转、进度记忆、全文搜索、读完页 |
 | 翻页动画 | ✅ | 平移 / 覆盖 / 仿真折页 / 淡入 / 无动画 |
-| 手势 | ✅ | 左侧上下滑调亮度、右侧上下滑调音量（带 HUD 指示器） |
+| 阅读模式 | ✅ | 翻页阅读 或 上下滚动（章节底部自动续读） |
+| 手势 | ✅ | 左侧上下滑调亮度、右侧上下滑调音量、双指缩放（放大后可拖动） |
 | 排版 | ✅ | 10 套阅读主题、字号/行距/字距/页边距/段首缩进/段间距、对齐、字体 |
 | 页眉页脚 | ✅ | 8 个宏（书名/章节/卷名/本章进度/全书进度/页码/时间/电量），可点击插入 |
 | 中文排版细节 | ✅ | 首字下沉、版框（细线 / 外细内粗）、划线颜色 6 色 |
+| 简繁转换 | ✅ | 不转换 / 转简体 / 转繁体（通用 · 台湾正体 · 香港繁体），等长映射不错位 |
+| 墨水屏模式 | ✅ | 关闭翻页动画与界面投影，开关即时生效 |
 | 笔记 | ✅ | 选中即划线（可配色）、写笔记、书签、笔记检索、导出到剪贴板 |
 | 统计 | ✅ | 今日 / 累计时长字数、连续天数、7 日柱状图、12 周热力图、时长排行 |
 | 听书 | ✅ | 原生 TTS，语速 / 音调 / 语言可调，自动连读下一章 |
-| 设置 | ✅ | 主题模式与主题色、书架视图、封面填充、阅读目标、数据清空 |
+| 检查更新 | ✅ | 读取 GitHub Releases、比较版本、下载 APK、交给系统安装器 |
 
 完整的功能拆解、已完成 / 待实现清单见 [`docs/FEATURE-MAP.md`](docs/FEATURE-MAP.md)。
 
@@ -70,9 +73,10 @@ flutter build apk --release --split-per-abi
 - **Flutter 3.24** + Material 3，Riverpod 状态管理，go_router 路由
 - **Hive** 本地存储（书籍 / 章节 / 笔记 / 阅读记录 / 设置）
 - 自研 **TXT / EPUB 解析引擎**（`archive` + `xml` + `html`，无第三方电子书依赖）
-- 自研 **原生通道**：`goodreader/tts`（TextToSpeech）与 `goodreader/native`（亮度 / 音量 / 常亮 / 电量），不依赖任何第三方插件
+- 自研 **原生通道**：`goodreader/tts`（TextToSpeech）与 `goodreader/native`（亮度 / 音量 / 常亮 / 电量 / 安装 APK / 打开链接），不依赖任何第三方插件
 - 自研 **排版变换层**（`lib/features/reader/text_layout.dart`）：段首缩进与段间距以单调变换实现，划线/书签/搜索偏移可精确双向映射
-- `file_picker` 导入、`fl_chart` 统计图表
+- 自研 **简繁转换**（`lib/features/reader/convert/`）：Unicode Unihan 单字表 + OpenCC 词组表，**全部映射等长**，因此切换简繁不会让划线错位
+- `file_picker` 导入、`fl_chart` 统计图表、`dart:io` HttpClient 检查更新
 
 ## 目录结构
 
@@ -82,9 +86,18 @@ lib/
 ├── data/            # 模型、Hive 存储、仓储层
 ├── features/        # 书架 / 阅读器 / 笔记 / 统计 / 设置 / 书籍详情
 │   └── reader/engines/   # TXT / EPUB 解析引擎
-├── services/        # 导入服务、TTS 服务
+├── services/        # 导入服务、TTS、原生能力、更新检查
 └── state/           # Riverpod providers 与控制器
 ```
+
+## 第三方数据
+
+`assets/convert/` 下的简繁转换表由 `scripts/generate_convert_tables.py` 生成，来源：
+
+- Unicode **Unihan** `Unihan_Variants.txt`（单字简繁变体）
+- **OpenCC** `STPhrases` / `TSPhrases` / `TWVariants` / `HKVariants`（Apache-2.0）
+
+运行 `python scripts/generate_convert_tables.py --workdir <含源文件的目录>` 可重新生成。
 
 ## 许可证
 

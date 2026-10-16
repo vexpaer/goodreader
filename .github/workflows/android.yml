@@ -43,6 +43,13 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Resolve app version
+        id: appver
+        run: |
+          RAW=$(grep '^version:' pubspec.yaml | sed 's/^version:[[:space:]]*//')
+          echo "version=${RAW%%+*}" >> "$GITHUB_OUTPUT"
+          echo "build=${RAW##*+}" >> "$GITHUB_OUTPUT"
+
       - name: Static analysis
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
@@ -50,10 +57,18 @@ jobs:
         run: flutter test
 
       - name: Build release APKs (per ABI)
-        run: flutter build apk --release --split-per-abi
+        run: >
+          flutter build apk --release --split-per-abi
+          --dart-define=APP_VERSION=${{ steps.appver.outputs.version }}
+          --dart-define=APP_BUILD=${{ steps.appver.outputs.build }}
+          --dart-define=APP_REPO=${{ github.repository }}
 
       - name: Build universal release APK
-        run: flutter build apk --release
+        run: >
+          flutter build apk --release
+          --dart-define=APP_VERSION=${{ steps.appver.outputs.version }}
+          --dart-define=APP_BUILD=${{ steps.appver.outputs.build }}
+          --dart-define=APP_REPO=${{ github.repository }}
 
       - name: Rename artifacts
         run: |

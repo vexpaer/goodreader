@@ -11,6 +11,7 @@ class ReaderTopBar extends StatelessWidget {
     required this.chapterTitle,
     required this.progressLabel,
     required this.speaking,
+    required this.flat,
     required this.onBack,
     required this.onCatalog,
     required this.onNotes,
@@ -24,6 +25,9 @@ class ReaderTopBar extends StatelessWidget {
   final String chapterTitle;
   final String progressLabel;
   final bool speaking;
+
+  /// E-ink mode drops the drop shadow from the chrome.
+  final bool flat;
   final VoidCallback onBack;
   final VoidCallback onCatalog;
   final VoidCallback onNotes;
@@ -35,7 +39,7 @@ class ReaderTopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: theme.background,
-      elevation: 2,
+      elevation: flat ? 0 : 2,
       shadowColor: Colors.black26,
       child: SafeArea(
         bottom: false,
@@ -119,6 +123,7 @@ class ReaderBottomBar extends StatelessWidget {
     required this.bookProgress,
     required this.autoPageSeconds,
     required this.speaking,
+    required this.flat,
     required this.onSeek,
     required this.onPrev,
     required this.onNext,
@@ -138,6 +143,7 @@ class ReaderBottomBar extends StatelessWidget {
   final double bookProgress;
   final int autoPageSeconds;
   final bool speaking;
+  final bool flat;
   final ValueChanged<int> onSeek;
   final VoidCallback onPrev;
   final VoidCallback onNext;
@@ -154,7 +160,7 @@ class ReaderBottomBar extends StatelessWidget {
     final max = chapterCount <= 1 ? 1.0 : (chapterCount - 1).toDouble();
     return Material(
       color: theme.background,
-      elevation: 2,
+      elevation: flat ? 0 : 2,
       shadowColor: Colors.black26,
       child: SafeArea(
         top: false,
