@@ -92,30 +92,32 @@ class WebDavBackend extends SyncBackend {
   }
 
   @override
-  Future<void> put(String path, String content) async {
-    final response = await _transport.put(
-      _url(path),
-      headers: {
-        'authorization': authorizationHeader,
-        'content-type': 'application/json',
-      },
-      body: content,
-    );
-    if (response.statusCode >= 400) {
-      throw SyncException('上传失败，HTTP ${response.statusCode}');
-    }
-  }
+  Future<void> put(String path, String content) => _guard(() async {
+        final response = await _transport.put(
+          _url(path),
+          headers: {
+            'authorization': authorizationHeader,
+            'content-type': 'application/json',
+          },
+          body: content,
+        );
+        if (response.statusCode >= 400) {
+          throw SyncException('上传失败，HTTP ${response.statusCode}');
+        }
+      });
 
   @override
-  Future<String?> get(String path) async {
-    final response =
-        await _transport.get(_url(path), headers: {'authorization': authorizationHeader});
-    if (response.statusCode == 404) return null;
-    if (response.statusCode >= 400) {
-      throw SyncException('下载失败，HTTP ${response.statusCode}');
-    }
-    return response.body;
-  }
+  Future<String?> get(String path) => _guard(() async {
+        final response = await _transport.get(
+          _url(path),
+          headers: {'authorization': authorizationHeader},
+        );
+        if (response.statusCode == 404) return null;
+        if (response.statusCode >= 400) {
+          throw SyncException('下载失败，HTTP ${response.statusCode}');
+        }
+        return response.body;
+      });
 
   @override
   Future<void> delete(String path) async {
@@ -125,17 +127,23 @@ class WebDavBackend extends SyncBackend {
     }
   }
 
-  Future<TransportResponse> _request(String method, Uri url) async {
+  /// 所有动作都走这里，网络层异常一律转成 SyncException。
+  ///
+  /// 调用方只 catch 一种异常。少包一条路径就意味着那一种失败会漏过去。
+  Future<T> _guard<T>(Future<T> Function() body) async {
     try {
-      return await _transport.send(
-        method,
-        url,
-        headers: {'authorization': authorizationHeader, 'depth': '1'},
-      );
+      return await body();
     } on TransportException catch (e) {
       throw SyncException(e.message);
     }
   }
+
+  Future<TransportResponse> _request(String method, Uri url) =>
+      _guard(() => _transport.send(
+            method,
+            url,
+            headers: {'authorization': authorizationHeader, 'depth': '1'},
+          ));
 
   /// 从 PROPFIND 的 XML 里取出文件名、大小与修改时间。
   ///
