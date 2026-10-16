@@ -141,10 +141,11 @@ class IoHttpTransport extends HttpTransport {
     }
   }
 
-  Object? _encode(Object? body) {
+  /// http 的 Request.body 只收字符串。字节走 bodyBytes，这里不会遇到，因为
+  /// 所有客户端都传 JSON。
+  String? _encode(Object? body) {
     if (body == null) return null;
     if (body is String) return body;
-    if (body is Uint8List) return body;
     return jsonEncode(body);
   }
 
