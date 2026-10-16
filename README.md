@@ -30,6 +30,7 @@
 | 统计 | ✅ | 今日 / 累计时长字数、连续天数、7 日柱状图、12 周热力图、时长排行 |
 | 听书 | ✅ | 原生 TTS，语速 / 音调 / 语言可调，自动连读下一章 |
 | 检查更新 | ✅ | 读取 GitHub Releases、比较版本、下载 APK、交给系统安装器 |
+| 边框图库 | ✅ | 导入边框花纹图、九宫格切割设计、实时预览（绿线定拉伸区、橙框定安全区） |
 
 完整的功能拆解、已完成 / 待实现清单见 [`docs/FEATURE-MAP.md`](docs/FEATURE-MAP.md)。
 
@@ -76,6 +77,8 @@ flutter build apk --release --split-per-abi
 - 自研 **原生通道**：`goodreader/tts`（TextToSpeech）与 `goodreader/native`（亮度 / 音量 / 常亮 / 电量 / 安装 APK / 打开链接），不依赖任何第三方插件
 - 自研 **排版变换层**（`lib/features/reader/text_layout.dart`）：段首缩进与段间距以单调变换实现，划线/书签/搜索偏移可精确双向映射
 - 自研 **简繁转换**（`lib/features/reader/convert/`）：Unicode Unihan 单字表 + OpenCC 词组表，**全部映射等长**，因此切换简繁不会让划线错位
+- 自研 **九宫格切割模型**（`lib/data/models/stretch_border.dart`）：边框花纹图按四角 / 四边 / 中心切分，四个角永远不被拉伸；原图比例、可拉伸矩形、安全框分属三个独立概念，页面缩放时互不推导
+- 自研 **文件头解析**（`lib/data/services/image_header.dart`）：不解码像素读出 PNG / JPEG / WebP 的宽高，避开这一版 Flutter 没有失败回调的图片解码器
 - `file_picker` 导入、`fl_chart` 统计图表、`dart:io` HttpClient 检查更新
 
 ## 目录结构
@@ -84,8 +87,9 @@ flutter build apk --release --split-per-abi
 lib/
 ├── core/            # 主题、路由
 ├── data/            # 模型、Hive 存储、仓储层
-├── features/        # 书架 / 阅读器 / 笔记 / 统计 / 设置 / 书籍详情
-│   └── reader/engines/   # TXT / EPUB 解析引擎
+├── features/        # 书架 / 阅读器 / 笔记 / 统计 / 设置 / 书籍详情 / 分享
+│   ├── reader/engines/   # TXT / EPUB 解析引擎
+│   └── share/            # 边框图库与九宫格切割设计器
 ├── services/        # 导入服务、TTS、原生能力、更新检查
 └── state/           # Riverpod providers 与控制器
 ```
