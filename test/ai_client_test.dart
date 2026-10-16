@@ -6,10 +6,14 @@ import 'package:goodreader/services/ai/ai_client.dart';
 import 'package:goodreader/services/http_transport.dart';
 
 class FakeTransport extends HttpTransport {
-  FakeTransport({this.statusCode = 200, this.body = '{}', this.headers = const {}});
+  FakeTransport({
+    this.statusCode = 200,
+    this.responseBody = '{}',
+    this.headers = const {},
+  });
 
   int statusCode;
-  String body;
+  String responseBody;
   Map<String, String> headers;
 
   /// 收到的最后一次请求，测试用它来断言请求体。
@@ -54,8 +58,8 @@ class FakeTransport extends HttpTransport {
     lastBody = body;
     return TransportResponse(
       statusCode: statusCode,
-      body: body,
-      headers: headers,
+      body: responseBody,
+      headers: headers ?? const {},
     );
   }
 }
@@ -82,7 +86,7 @@ String errorBody(String message, {String type = 'invalid_request_error'}) =>
 void main() {
   group('AiClient 正常路径', () {
     test('发出请求并读回助手回复', () async {
-      final transport = FakeTransport(body: okBody('林澜是沈砚的母亲。'));
+      final transport = FakeTransport(responseBody: okBody('林澜是沈砚的母亲。'));
       final client = AiClient(transport: transport);
 
       final reply = await client.chat(
@@ -99,7 +103,7 @@ void main() {
     });
 
     test('请求体带模型、系统提示与历史', () async {
-      final transport = FakeTransport(body: okBody('ok'));
+      final transport = FakeTransport(responseBody: okBody('ok'));
       final client = AiClient(transport: transport);
 
       await client.chat(
@@ -130,7 +134,7 @@ void main() {
     });
 
     test('默认系统提示要求用原文语言', () async {
-      final transport = FakeTransport(body: okBody('ok'));
+      final transport = FakeTransport(responseBody: okBody('ok'));
       final client = AiClient(transport: transport);
       await client.chat(
         baseUrl: 'https://api.example.com/v1',
@@ -146,7 +150,7 @@ void main() {
     });
 
     test('回复首尾空白被去掉', () async {
-      final transport = FakeTransport(body: okBody('  有空白  \n'));
+      final transport = FakeTransport(responseBody: okBody('  有空白  \n'));
       final client = AiClient(transport: transport);
       final reply = await client.chat(
         baseUrl: 'https://api.example.com/v1',
@@ -215,7 +219,7 @@ void main() {
         jsonEncode({'choices': [{'message': {'content': '  '}}]}),
         jsonEncode({'error': 'x'}),
       ]) {
-        final t = FakeTransport(body: body);
+        final t = FakeTransport(responseBody: body);
         await expectLater(
           callWith(t),
           throwsA(isA<AiException>()
@@ -226,7 +230,7 @@ void main() {
     });
 
     test('没配端点或模型时本地就失败，不发请求', () async {
-      final t = FakeTransport(body: okBody('x'));
+      final t = FakeTransport(responseBody: okBody('x'));
       final client = AiClient(transport: t);
       await expectLater(
         client.chat(

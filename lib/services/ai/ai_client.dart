@@ -1,4 +1,3 @@
-import 'package:collection/collection.dart';
 import 'package:goodreader/services/http_transport.dart';
 
 /// 一轮对话里的一条消息。
@@ -130,7 +129,7 @@ class AiClient {
 
     final messages = <Map<String, dynamic>>[
       {'role': 'system', 'content': system ?? systemPrompt},
-      ...history.takeLast(maxHistory).map((m) => m.toApiMap()),
+      ..._recent(history, maxHistory).map((m) => m.toApiMap()),
     ];
 
     final url = Uri.parse('$baseUrl$_path');
@@ -158,6 +157,12 @@ class AiClient {
     } on TransportException catch (e) {
       throw AiException(AiFailure.network, e.message);
     }
+  }
+
+  /// 只带最近 [limit] 条。不用 IterableExtension 是为了少一个 import。
+  static List<ChatMessage> _recent(List<ChatMessage> history, int limit) {
+    if (history.length <= limit) return history;
+    return history.sublist(history.length - limit);
   }
 
   String _readContent(TransportResponse response) {
