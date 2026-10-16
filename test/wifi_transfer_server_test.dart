@@ -96,7 +96,8 @@ void main() {
       expect(file.existsSync(), isTrue);
       expect(file.readAsStringSync(), '第一段正文');
       expect(received.length, 1);
-      expect(received.single.size, '第一段正文'.length);
+      // size 数的是落盘字节，不是字符。中文一个字符三个字节。
+      expect(received.single.size, utf8.encode('第一段正文').length);
       client.close(force: true);
     });
 
