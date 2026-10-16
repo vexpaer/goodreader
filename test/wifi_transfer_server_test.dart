@@ -82,7 +82,8 @@ void main() {
       final request = await client.postUrl(Uri.parse(
         url('/upload?pin=123456&name=${Uri.encodeQueryComponent('三体.txt')}'),
       ));
-      request.write('第一段正文');
+      // HttpClientRequest.write 只收 latin1，中文必须编码成字节再发。
+      request.add(utf8.encode('第一段正文'));
       final response = await request.close();
       final body = await response.transform(utf8.decoder).join();
 
@@ -103,7 +104,7 @@ void main() {
       final client = HttpClient();
       final request = await client.postUrl(
           Uri.parse(url('/upload?pin=000000&name=x.txt')));
-      request.write('secret');
+      request.add(utf8.encode('secret'));
       final response = await request.close();
       final body = await response.transform(utf8.decoder).join();
       expect(response.statusCode, 400);
@@ -127,7 +128,7 @@ void main() {
       final client = HttpClient();
       final request =
           await client.postUrl(Uri.parse(url('/upload?pin=123456')));
-      request.write('data');
+      request.add(utf8.encode('data'));
       final response = await request.close();
       expect(response.statusCode, 400);
       client.close(force: true);
@@ -138,7 +139,7 @@ void main() {
       for (final content in ['旧内容', '新内容']) {
         final request = await client.postUrl(Uri.parse(
             url('/upload?pin=123456&name=${Uri.encodeQueryComponent('书.txt')}')));
-        request.write(content);
+        request.add(utf8.encode(content));
         await (await request.close()).drain<void>();
       }
       expect(File('${temp.path}/书.txt').readAsStringSync(), '新内容');
