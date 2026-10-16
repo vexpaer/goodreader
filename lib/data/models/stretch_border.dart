@@ -1,6 +1,3 @@
-import 'dart:math' as math;
-import 'dart:ui';
-
 /// 一张边框花纹图的切割与铺放方式。
 ///
 /// 边框图按「四角 / 四边 / 中心」九块切分。四个角保持原尺寸，其余块按
@@ -13,7 +10,9 @@ import 'dart:ui';
 ///
 /// 铺放规则：四个角永远不被拉伸。卡片装不下四个角时整张图按同一个系数缩小，
 /// 中间的可拉伸块随之塌到零宽，四个角不会被挤压。
-library;
+
+import 'dart:math' as math;
+import 'dart:ui';
 
 enum StretchMode {
   /// 横竖都能拉，适合四角都有装饰的边框。

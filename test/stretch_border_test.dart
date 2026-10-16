@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:goodreader/features/share/stretch_border.dart';
+import 'package:goodreader/data/models/stretch_border.dart';
 
 /// 九个切片必须在横竖两个方向上都无缝拼成边框带。
 void expectTilesFillBand(StretchLayout layout, String label) {
@@ -56,10 +56,18 @@ void expectCornersUniform(StretchLayout layout, String label) {
   }
 }
 
+/// [closeTo] 只接数字，Rect 只能逐边比。
+void expectRect(Rect actual, Rect expected, String reason) {
+  expect(actual.left, closeTo(expected.left, 1e-6), reason: reason);
+  expect(actual.top, closeTo(expected.top, 1e-6), reason: reason);
+  expect(actual.right, closeTo(expected.right, 1e-6), reason: reason);
+  expect(actual.bottom, closeTo(expected.bottom, 1e-6), reason: reason);
+}
+
 void main() {
   group('StretchBorder.create 夹住非法输入', () {
     test('可拉伸矩形被夹回图内', () {
-      const b = StretchBorder.create(
+      final b = StretchBorder.create(
         width: 100,
         height: 100,
         stretchLeft: -50,
@@ -74,7 +82,7 @@ void main() {
     });
 
     test('安全框四边各自夹到合法区间', () {
-      const b = StretchBorder.create(
+      final b = StretchBorder.create(
         width: 10,
         height: 10,
         safe: SafeArea(left: -1, top: 4, right: 9, bottom: 0.5),
@@ -103,7 +111,7 @@ void main() {
       expectTilesFillBand(l, 'identity');
       expect(l.scale, closeTo(1, 1e-9));
       for (var i = 0; i < 9; i++) {
-        expect(l.slices[i].dst, closeTo(l.slices[i].src, 1e-6), reason: 'slice $i');
+        expectRect(l.slices[i].dst, l.slices[i].src, 'slice $i');
       }
       expect(l.slices[4].dst.width, 100);
       expect(l.slices[4].dst.height, 100);
@@ -201,7 +209,7 @@ void main() {
     });
 
     test('绿线交叉拖动导致四个角放不下时整体等比缩小', () {
-      const b = StretchBorder.create(
+      final b = StretchBorder.create(
         width: 300,
         height: 300,
         stretchLeft: 250,
