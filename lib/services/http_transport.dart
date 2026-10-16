@@ -64,6 +64,14 @@ abstract class HttpTransport {
 
   Future<TransportResponse> delete(Uri url, {Map<String, String>? headers});
 
+  /// 任意方法。WebDAV 需要 MKCOL / PROPFIND 这类动词。
+  Future<TransportResponse> send(
+    String method,
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+  });
+
   /// 流式下载，用于同步大文件。默认按一次性读取实现。
   Future<Uint8List> download(Uri url, {Map<String, String>? headers}) async {
     final response = await get(url, headers: headers);
@@ -103,6 +111,21 @@ class IoHttpTransport extends HttpTransport {
   @override
   Future<TransportResponse> delete(Uri url, {Map<String, String>? headers}) =>
       _send(() => http.delete(url, headers: _merge(headers)));
+
+  @override
+  Future<TransportResponse> send(
+    String method,
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+  }) =>
+      _send(() {
+        final request = http.Request(method, url)
+          ..headers.addAll(_merge(headers));
+        final encoded = _encode(body);
+        if (encoded != null) request.body = encoded;
+        return request.send().then((r) => http.Response.fromStream(r));
+      });
 
   @override
   Future<Uint8List> download(Uri url, {Map<String, String>? headers}) async {
