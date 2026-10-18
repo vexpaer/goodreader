@@ -180,7 +180,7 @@ void main() {
     });
 
     test('超长名截到 120 字符，保留后缀部分', () {
-      final long = 'a' * 200 + '.txt';
+      final long = '${'a' * 200}.txt';
       final result = WifiTransferServer.sanitizeFileName(long);
       expect(result.length, 120);
       expect(result.endsWith('.txt'), isTrue);

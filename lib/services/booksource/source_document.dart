@@ -121,4 +121,11 @@ class SourceDocument implements ReaderDocument {
     hits.sort((a, b) => a.chapterIndex.compareTo(b.chapterIndex));
     return hits;
   }
+
+  /// 缓存的是已经抓下来的正文，没有别的资源要释放。`implements` 要求把接口里
+  /// 带默认实现的方法也实现一遍，所以这里不能省。
+  @override
+  void dispose() {
+    _cache.clear();
+  }
 }
