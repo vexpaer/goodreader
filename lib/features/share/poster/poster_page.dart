@@ -7,7 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/models/book.dart';
 import '../../../data/models/border_asset.dart';
-import '../../../data/models/stretch_border.dart';
+import '../../../data/models/stretch_border.dart' show StretchBorder;
 import '../../../state/providers.dart';
 import '../../bookshelf/widgets/book_cover.dart';
 import '../widgets/border_image.dart';

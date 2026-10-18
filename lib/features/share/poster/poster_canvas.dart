@@ -42,7 +42,7 @@ class PosterCanvas extends StatelessWidget {
     final cut = borderCut;
     final image = borderImage;
 
-    final safe = cut == null ? null : cut.safe.rectOf(size);
+    final safe = cut?.safe.rectOf(size);
     // 有安全区时内容就放在安全区里，安全区本身已经表达了边距；再套一层 padding
     // 会挤成两倍。只留一点呼吸空间。
     final inset = safe == null ? metrics.padding : metrics.gap * 0.4;

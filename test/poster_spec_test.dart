@@ -145,7 +145,7 @@ void main() {
     });
 
     test('超长且无标点时按字数截断并加省略号', () {
-      final long = '甲' * 300;
+      const long = '甲' * 300;
       final out = truncateForPoster(long, maxChars: 220);
       expect(out.length, 221);
       expect(out.endsWith('…'), isTrue);

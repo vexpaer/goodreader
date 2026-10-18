@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flutter/services.dart';
 
 /// Screen brightness, media volume, keep-screen-on and battery state, backed by

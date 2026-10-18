@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../data/models/border_asset.dart';
 import '../../state/providers.dart';
-import 'border_designer_page.dart';
+import 'widgets/border_image.dart';
 import 'widgets/border_preview.dart';
 
 /// 边框花纹图库。导入图片后逐张进入设计器调整切割方式。

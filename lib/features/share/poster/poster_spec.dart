@@ -1,14 +1,14 @@
-import 'package:flutter/material.dart';
-
-import '../../../data/models/book.dart';
-import '../../../data/models/note.dart';
-
 /// 分享海报的内容与样式。
 ///
 /// 配色不是随手挑的：`night` 直接取目标应用内容模板 CSS 里的那套值
 /// （`#121418` 底 / `#EEE9DF` 字 / `#73C7B6` 点缀），其余三套取阅读主题
 /// 背景图的实测平均色，所以海报和阅读界面在同一个色系里。
 library;
+
+import 'package:flutter/material.dart';
+
+import '../../../data/models/book.dart';
+import '../../../data/models/note.dart';
 
 /// 海报内容类型。
 enum PosterKind {
