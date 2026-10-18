@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/services.dart';
 
 /// Screen brightness, media volume, keep-screen-on and battery state, backed by
@@ -43,6 +45,26 @@ class NativeService {
     final ok = await _invoke<bool>('openUrl', {'url': url});
     return ok ?? false;
   }
+
+  /// 把一张 PNG 交给系统分享面板。
+  ///
+  /// 字节直接过通道：先写文件再让 Dart 传路径的话，Dart 侧还要知道缓存目录，
+  /// 而缓存目录和 FileProvider 的 `<cache-path>` 必须对上，对不上就是一个只在
+  /// 真机上才暴露的失败。
+  Future<bool> shareImage(Uint8List bytes, String name) async {
+    final ok = await _invoke<bool>('image.share', {
+      'bytes': bytes,
+      'name': name,
+    });
+    return ok ?? false;
+  }
+
+  /// 把一张 PNG 存到相册。返回可读的保存位置，失败返回 null。
+  Future<String?> saveImage(Uint8List bytes, String name) =>
+      _invoke<String>('image.save', {
+        'bytes': bytes,
+        'name': name,
+      });
 
   Future<BatteryState?> battery() async {
     try {

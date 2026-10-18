@@ -1,10 +1,14 @@
 package com.goodreader.app
 
+import android.content.ContentValues
 import android.content.Intent
 import android.content.IntentFilter
 import android.media.AudioManager
 import android.net.Uri
 import android.os.BatteryManager
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.view.WindowManager
@@ -214,6 +218,26 @@ class MainActivity : FlutterActivity() {
                 result.success(if (url.isNullOrBlank()) false else openUrl(url))
             }
 
+            "image.share" -> {
+                val bytes = call.argument<ByteArray>("bytes")
+                val name = call.argument<String>("name")
+                if (bytes == null || name.isNullOrBlank()) {
+                    result.success(false)
+                } else {
+                    result.success(shareImage(bytes, name))
+                }
+            }
+
+            "image.save" -> {
+                val bytes = call.argument<ByteArray>("bytes")
+                val name = call.argument<String>("name")
+                if (bytes == null || name.isNullOrBlank()) {
+                    result.success(null)
+                } else {
+                    result.success(saveImage(bytes, name))
+                }
+            }
+
             else -> result.notImplemented()
         }
     }
@@ -239,6 +263,72 @@ class MainActivity : FlutterActivity() {
         }
     } catch (_: Exception) {
         false
+    }
+
+    /**
+     * 把图片交给系统分享面板。
+     *
+     * 写进 cacheDir 而不是外部目录：FileProvider 已经声明了 `<cache-path>`，
+     * 不必额外申请存储权限。每次分享都覆盖同名文件，缓存由系统回收。
+     */
+    private fun shareImage(bytes: ByteArray, name: String): Boolean = try {
+        val dir = File(cacheDir, "shared").apply { mkdirs() }
+        val file = File(dir, name)
+        file.writeBytes(bytes)
+
+        val uri = FileProvider.getUriForFile(
+            this,
+            "$packageName.fileprovider",
+            file,
+        )
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "image/png"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        startActivity(Intent.createChooser(intent, "分享海报"))
+        true
+    } catch (_: Exception) {
+        false
+    }
+
+    /**
+     * 存到系统相册。
+     *
+     * Android 10 起走 MediaStore，不需要任何权限；更早的版本写公共 Pictures 目录
+     * 要 WRITE_EXTERNAL_STORAGE，为了存一张图去要全盘写权限不值得，所以退回应用
+     * 自己的图片目录，并在返回值里给出真实路径让用户知道存哪了。
+     */
+    private fun saveImage(bytes: ByteArray, name: String): String? = try {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val values = ContentValues().apply {
+                put(MediaStore.Images.Media.DISPLAY_NAME, name)
+                put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+                put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/GoodReader")
+                put(MediaStore.Images.Media.IS_PENDING, 1)
+            }
+            val resolver = contentResolver
+            val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+            if (uri == null) {
+                null
+            } else {
+                resolver.openOutputStream(uri)?.use { it.write(bytes) }
+                values.clear()
+                values.put(MediaStore.Images.Media.IS_PENDING, 0)
+                resolver.update(uri, values, null, null)
+                "相册/Pictures/GoodReader/$name"
+            }
+        } else {
+            val dir = File(
+                getExternalFilesDir(Environment.DIRECTORY_PICTURES),
+                "GoodReader",
+            ).apply { mkdirs() }
+            val file = File(dir, name)
+            file.writeBytes(bytes)
+            file.absolutePath
+        }
+    } catch (_: Exception) {
+        null
     }
 
     private fun openUrl(url: String): Boolean = try {

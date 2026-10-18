@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/book.dart';
 import '../../data/models/note.dart';
 import '../../state/providers.dart';
+import '../share/poster/poster_page.dart';
+import '../share/poster/poster_spec.dart';
 
 class NotesPage extends ConsumerStatefulWidget {
   const NotesPage({super.key});
@@ -149,6 +151,8 @@ class _NoteTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final book = ref.read(bookRepositoryProvider).byId(note.bookId);
+
     return Dismissible(
       key: ValueKey(note.id),
       direction: DismissDirection.endToStart,
@@ -180,6 +184,11 @@ class _NoteTile extends ConsumerWidget {
             overflow: TextOverflow.ellipsis,
           ),
           isThreeLine: note.note.isNotEmpty,
+          onTap: () => openPoster(
+            context,
+            specForNote(note: note, book: book),
+            book: book,
+          ),
         ),
       ),
     );

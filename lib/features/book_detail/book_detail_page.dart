@@ -6,6 +6,8 @@ import '../../data/models/book.dart';
 import '../../data/models/note.dart';
 import '../../state/providers.dart';
 import '../bookshelf/widgets/book_cover.dart';
+import '../share/poster/poster_page.dart';
+import '../share/poster/poster_spec.dart';
 
 class BookDetailPage extends ConsumerWidget {
   const BookDetailPage({super.key, required this.bookId});
@@ -33,6 +35,12 @@ class BookDetailPage extends ConsumerWidget {
       appBar: AppBar(
         title: Text(book.title, maxLines: 1, overflow: TextOverflow.ellipsis),
         actions: [
+          IconButton(
+            tooltip: '分享卡片',
+            icon: const Icon(Icons.ios_share),
+            onPressed: () =>
+                openPoster(context, specForBook(book), book: book),
+          ),
           IconButton(
             tooltip: book.isFavorite ? '取消收藏' : '收藏',
             icon: Icon(book.isFavorite ? Icons.favorite : Icons.favorite_border),

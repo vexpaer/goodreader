@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
 import '../../../data/models/stretch_border.dart';
+import '../border_paint.dart';
 
 /// 边框在卡片上的实时预览，同时是设计器的编辑面。
 ///
@@ -150,11 +151,7 @@ class _BorderPainter extends CustomPainter {
 
     final image = this.image;
     if (image != null) {
-      final paint = Paint();
-      for (final slice in layout.slices) {
-        if (slice.dst.isEmpty || slice.src.isEmpty) continue;
-        canvas.drawImageRect(image, slice.src, slice.dst, paint);
-      }
+      paintNinePatch(canvas, image, layout);
     } else {
       final wire = Paint()
         ..color = const Color(0x33000000)

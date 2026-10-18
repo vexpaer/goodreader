@@ -1,5 +1,3 @@
-import 'dart:async';
-import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -7,74 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/border_asset.dart';
 import '../../data/models/stretch_border.dart';
-import '../../data/services/image_header.dart';
 import '../../state/providers.dart';
+import 'widgets/border_image.dart';
 import 'widgets/border_preview.dart';
-
-Future<ui.Image?> loadBorderImage(String path) async {
-  final file = File(path);
-  if (!file.existsSync()) return null;
-  final bytes = await file.readAsBytes();
-  final header = readImageHeaderSize(bytes);
-  if (header == null) return null;
-  final completer = Completer<ui.Image?>();
-  try {
-    ui.decodeImageFromList(
-      bytes,
-      (image) {
-        if (!completer.isCompleted) completer.complete(image);
-      },
-    );
-  } on Object {
-    if (!completer.isCompleted) completer.complete(null);
-  }
-  return completer.future;
-}
-
-/// 解码一次并缓存的边框图。
-class BorderImage extends StatefulWidget {
-  const BorderImage({super.key, required this.path, required this.builder});
-
-  final String path;
-  final Widget Function(BuildContext, ui.Image?) builder;
-
-  @override
-  State<BorderImage> createState() => _BorderImageState();
-}
-
-class _BorderImageState extends State<BorderImage> {
-  ui.Image? _image;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  @override
-  void didUpdateWidget(BorderImage old) {
-    super.didUpdateWidget(old);
-    if (old.path != widget.path) _load();
-  }
-
-  void _load() async {
-    final image = await loadBorderImage(widget.path);
-    if (!mounted) {
-      image?.dispose();
-      return;
-    }
-    setState(() => _image = image);
-  }
-
-  @override
-  void dispose() {
-    _image?.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => widget.builder(context, _image);
-}
 
 /// 单张边框的设计器：拖动绿线定可拉伸区域，拖动橙框定安全区。
 class BorderDesignerPage extends ConsumerStatefulWidget {
