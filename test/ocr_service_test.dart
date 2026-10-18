@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import 'dart:ui' as ui;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:goodreader/services/http_transport.dart';
@@ -47,22 +46,7 @@ class FakeTransport extends HttpTransport {
       throw UnimplementedError();
 }
 
-/// 用 dart:ui 现画一张 1×1 的 PNG，避免把一段来路不明的 base64 写进测试。
-Future<Uint8List> tinyPng() async {
-  final recorder = ui.PictureRecorder();
-  ui.Canvas(recorder).drawRect(
-    const ui.Rect.fromLTWH(0, 0, 1, 1),
-    ui.Paint()..color = const ui.Color(0xFF000000),
-  );
-  final image = await recorder.endRecording().toImage(1, 1);
-  final data = await image.toByteData(format: ui.ImageByteFormat.png);
-  image.dispose();
-  return data!.buffer.asUint8List();
-}
-
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-
   group('响应解析', () {
     test('认 text 字段', () {
       expect(OcrService.parseText({'text': '第一行\n第二行'}), '第一行\n第二行');
@@ -189,17 +173,33 @@ void main() {
   });
 
   group('预处理', () {
-    testWidgets('小图原样返回，不重新编码', (tester) async {
-      final bytes = await tinyPng();
-      final result = await OcrService.downscale(bytes);
-      expect(result, orderedEquals(bytes));
+    test('长边超过上限才缩', () {
+      expect(OcrService.needsDownscale(1600, 900), isFalse);
+      expect(OcrService.needsDownscale(900, 1600), isFalse);
+      expect(OcrService.needsDownscale(1601, 900), isTrue);
+      expect(OcrService.needsDownscale(900, 2400), isTrue);
+      expect(OcrService.needsDownscale(4000, 3000), isTrue);
     });
 
-    testWidgets('打不开的数据报可读的错误', (tester) async {
-      await expectLater(
-        OcrService.downscale(Uint8List.fromList([1, 2, 3, 4])),
-        throwsA(isA<OcrException>().having((e) => e.message, 'm', contains('打不开'))),
-      );
+    test('按长边等比缩，短边跟着缩', () {
+      expect(OcrService.scaledSize(3200, 1600), (width: 1600, height: 800));
+      expect(OcrService.scaledSize(1600, 3200), (width: 800, height: 1600));
+    });
+
+    test('不需要缩时原样返回', () {
+      expect(OcrService.scaledSize(1000, 800), (width: 1000, height: 800));
+      expect(OcrService.scaledSize(1600, 1600), (width: 1600, height: 1600));
+    });
+
+    test('极窄的长条短边至少留 1 像素', () {
+      // 1×5000 按比例算出来宽度会四舍五入成 0，0 宽的图编不出来。
+      expect(OcrService.scaledSize(1, 5000), (width: 1, height: 1600));
+      expect(OcrService.scaledSize(5000, 1), (width: 1600, height: 1));
+    });
+
+    test('上限可调', () {
+      expect(OcrService.scaledSize(4000, 2000, edge: 1000),
+          (width: 1000, height: 500));
     });
   });
 }

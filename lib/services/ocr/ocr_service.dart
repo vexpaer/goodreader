@@ -115,6 +115,29 @@ class OcrService {
     return null;
   }
 
+  /// 这张图要不要缩。判断与尺寸计算都抽成纯函数，因为解码与编码依赖引擎，
+  /// 在单元测试里跑不起来，而真正会算错的恰恰是这两个数。
+  static bool needsDownscale(int width, int height, {int edge = maxEdge}) =>
+      math.max(width, height) > edge;
+
+  /// 缩到长边等于 [edge] 之后的新尺寸。
+  ///
+  /// 短边至少留 1 像素：极窄的长条（例如 1×5000）按比例算出来会变成 0，
+  /// 0 宽 0 高的图片编不出来。
+  static ({int width, int height}) scaledSize(
+    int width,
+    int height, {
+    int edge = maxEdge,
+  }) {
+    final longest = math.max(width, height);
+    if (longest <= edge) return (width: width, height: height);
+    final scale = edge / longest;
+    return (
+      width: math.max(1, (width * scale).round()),
+      height: math.max(1, (height * scale).round()),
+    );
+  }
+
   /// 把长边压到 [maxEdge] 以内再发。
   ///
   /// 缩放在 Canvas 上做，不逐像素处理：识别服务在乎的是分辨率，不是色彩。
@@ -132,15 +155,13 @@ class OcrService {
 
     final frame = await codec.getNextFrame();
     final image = frame.image;
-    final longest = math.max(image.width, image.height);
-    if (longest <= edge) {
+    if (!needsDownscale(image.width, image.height, edge: edge)) {
       image.dispose();
       return bytes;
     }
-
-    final scale = edge / longest;
-    final width = math.max(1, (image.width * scale).round());
-    final height = math.max(1, (image.height * scale).round());
+    final size = scaledSize(image.width, image.height, edge: edge);
+    final width = size.width;
+    final height = size.height;
 
     final recorder = ui.PictureRecorder();
     final canvas = ui.Canvas(recorder);

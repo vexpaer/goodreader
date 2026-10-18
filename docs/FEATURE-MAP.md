@@ -130,8 +130,10 @@
 
 | 功能 | 来源 | 状态 |
 | --- | --- | --- |
-| 多轮对话、书籍总结、背景查询、推荐 | 功能说明 4 | ⬜ 待实现 |
-| 40+ 家 AI 供应商预设 | `assets/images/ai_providers/`（OpenAI、Claude、Gemini、DeepSeek、通义、智谱、Kimi、Ollama…） | ⬜ 待实现 |
+| 多轮对话、书籍总结、背景查询 | 功能说明 4 | ✅ 已实现（OpenAI 兼容 chat completions，按书保存历史） |
+| 供应商预设 | `assets/images/ai_providers/` | ✅ 30+ 家（DeepSeek / 通义 / 智谱 / Kimi / Groq / OpenRouter / Ollama…），模型名是输入建议而非固定集合 |
+| 用户自带密钥 | 功能说明 4 | ✅ 密钥单独存放，不参与备份与同步，界面只显示脱敏值 |
+| 错误按原因分类 | — | ✅ 401 密钥错、429 稍后再试、5xx 带上游消息，三者处理方式不同 |
 | 自定义请求头、Responses 协议 | changelog | ⬜ 待实现 |
 | 角色关系图、角色身份与头像 | changelog、`assets/share/templates/character_relation.html` | ⬜ 待实现 |
 | 结合书籍内容生成笔记灵感 | 功能说明 4 | ⬜ 待实现 |
@@ -151,8 +153,11 @@
 
 | 功能 | 来源 | 状态 |
 | --- | --- | --- |
-| WebDAV 同步 | 功能说明 8、`icons/cloud/webdav.svg` | ⬜ 待实现 |
-| S3 / 兼容对象存储 | 功能说明 8、`icons/cloud/s3.svg` | ⬜ 待实现 |
+| WebDAV 同步 | 功能说明 8、`icons/cloud/webdav.svg` | ✅ 已实现（PROPFIND / MKCOL / PUT / GET / DELETE，按 local name 匹配命名空间） |
+| S3 / 兼容对象存储 | 功能说明 8、`icons/cloud/s3.svg` | ✅ 已实现（SigV4，路径风格，AWS 官方向量校验） |
+| 同步粒度 | — | ✅ 一本书一份文档，冲突只影响一本 |
+| 同步范围 | — | ✅ 书目 / 进度 / 笔记 / 设置；不含书籍文件、封面、密钥、统计 |
+| 删除传播 | — | ⬜ 未实现（无墓碑，删掉的条目下次同步会被云端拉回） |
 | Dropbox / Google Drive / OneDrive / iCloud | `icons/cloud/*` | ⬜ 待实现 |
 | 百度网盘 / 123 云盘 | `icons/cloud/baidupan.png`、`pan123.png` | ⬜ 待实现 |
 | 手动上传图库 / 字体 / 词典资源 | changelog | ⬜ 待实现 |
@@ -163,7 +168,10 @@
 
 | 功能 | 来源 | 状态 |
 | --- | --- | --- |
-| 拍照识别文字并导入 | `libmlkit_google_ocr_pipeline.so`、`play-services-mlkit-text-recognition-chinese` | ⬜ 待实现 |
+| 图片识别文字 | `libmlkit_google_ocr_pipeline.so`、`play-services-mlkit-text-recognition-chinese` | ✅ 已实现（交给用户自配的识别服务，接口是 `{image, language}`） |
+| 识别结果存为书籍 | — | ✅ 已实现（走现有导入管线，阅读器/笔记/进度直接可用） |
+| 端上模型 | 同上 | ⬜ 待实现（接口已留，换一个 `recognize` 实现即可） |
+| 拍照直接识别、多页连续识别 | changelog | ⬜ 待实现 |
 
 ## 11. 分享与导出
 
@@ -186,7 +194,10 @@
 | --- | --- | --- |
 | TXT / EPUB 编辑器、段落高亮 | changelog | ⬜ 待实现 |
 | EPUB 标点整理、章节管理、源码格式化 | changelog | ⬜ 待实现 |
-| 书源 / 规则脚本引擎 | `libfastdev_quickjs_runtime.so`、`packages/flutter_js/` | ⬜ 待实现 |
+| 书源 / 规则引擎 | `libfastdev_quickjs_runtime.so`、`packages/flutter_js/` | ✅ 已实现（声明式：CSS 选择器 + 正则，**不执行脚本**） |
+| 书源书按章懒加载 | — | ✅ 已实现（目录导入时落库，正文按章抓取并缓存） |
+| 书源 JSON 导入导出 | — | ✅ 已实现（同名同地址去重） |
+| 书源脚本（QuickJS） | `libfastdev_quickjs_runtime.so` | ❌ 不做（能执行任意代码的书源等于交出设备） |
 | 数学公式渲染 | `packages/flutter_math_fork/` | ⬜ 待实现 |
 
 ---

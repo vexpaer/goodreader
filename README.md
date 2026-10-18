@@ -31,6 +31,12 @@
 | 听书 | ✅ | 原生 TTS，语速 / 音调 / 语言可调，自动连读下一章 |
 | 检查更新 | ✅ | 读取 GitHub Releases、比较版本、下载 APK、交给系统安装器 |
 | 边框图库 | ✅ | 导入边框花纹图、九宫格切割设计、实时预览（绿线定拉伸区、橙框定安全区） |
+| 服务 | ✅ | 五种能力共用一个「自带端点」骨架：AI / 同步 / 识别 / 听书 / 书源；密钥单独存放 |
+| 阅读助手 | ✅ | OpenAI 兼容多轮对话，按书保存历史，30+ 家供应商预设 |
+| 云同步 | ✅ | WebDAV 与 S3（SigV4），一本书一份文档，冲突按较新一侧合并 |
+| Wi-Fi 传书 | ✅ | 本机起 HTTP 服务，浏览器上传，六位连接码，上传即入库 |
+| 书源 | ✅ | 声明式规则（CSS + 正则），搜到的书直接进书架，正文按章懒加载 |
+| 图片转文字 | ✅ | 交给自配识别服务，结果可编辑并存成一本书 |
 
 完整的功能拆解、已完成 / 待实现清单见 [`docs/FEATURE-MAP.md`](docs/FEATURE-MAP.md)。
 
@@ -79,6 +85,9 @@ flutter build apk --release --split-per-abi
 - 自研 **简繁转换**（`lib/features/reader/convert/`）：Unicode Unihan 单字表 + OpenCC 词组表，**全部映射等长**，因此切换简繁不会让划线错位
 - 自研 **九宫格切割模型**（`lib/data/models/stretch_border.dart`）：边框花纹图按四角 / 四边 / 中心切分，四个角永远不被拉伸；原图比例、可拉伸矩形、安全框分属三个独立概念，页面缩放时互不推导
 - 自研 **文件头解析**（`lib/data/services/image_header.dart`）：不解码像素读出 PNG / JPEG / WebP 的宽高，避开这一版 Flutter 没有失败回调的图片解码器
+- 自研 **书源引擎**（`lib/services/booksource/`）：规则串 `选择器[@属性][##正则##替换]`，**不执行脚本**——书源是第三方配置，能执行代码的书源等于把设备交出去
+- 自研 **SigV4 签名**（`lib/services/sync/s3_backend.dart`）：用 AWS 官方的 `get-vanilla` 向量逐字节校验后才用
+- 自研 **同步编排**（`lib/services/sync/`）：只认识文档，不认识 WebDAV 还是 S3；`apply` 返回布尔，落不了地的不算下载
 - `file_picker` 导入、`fl_chart` 统计图表、`dart:io` HttpClient 检查更新
 
 ## 目录结构
