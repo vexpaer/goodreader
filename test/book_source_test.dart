@@ -127,11 +127,17 @@ void main() {
     });
 
     test('属性与正则可以同时出现', () {
-      final rule = SourceRule.parse(r'a@title##\s+## ');
+      final rule = SourceRule.parse(r'a@title##\s+##/');
       expect(rule.selector, 'a');
       expect(rule.attribute, 'title');
       expect(rule.pattern, r'\s+');
-      expect(rule.replacement, ' ');
+      expect(rule.replacement, '/');
+    });
+
+    test('整串会被 trim，首尾空白不算规则的一部分', () {
+      final rule = SourceRule.parse('  a@href  ');
+      expect(rule.selector, 'a');
+      expect(rule.attribute, 'href');
     });
 
     test('toString 能还原成同一串', () {
@@ -139,7 +145,7 @@ void main() {
         'div.item',
         'a@href',
         r'span.author##作者：##',
-        r'a@title##\s+## ',
+        r'a@title##\s+##/',
       ]) {
         expect(SourceRule.parse(raw).toString(), raw, reason: raw);
       }

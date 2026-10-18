@@ -62,7 +62,10 @@ class BookSourceEngine {
     if (items.isEmpty) {
       // 页面里出现了关键词却一条都没选中，几乎一定是选择器写错了；页面里连
       // 关键词都没有，那是真的没有结果。两者混在一起会让用户不知道该改什么。
-      final hasKeyword = document.text?.contains(keyword) ?? false;
+      // 用 body 的文本而不是 document.text：后者在 package:html 里对
+      // Document 不保证包含后代文本，取不到时会静默判成「没有结果」。
+      final pageText = document.body?.text ?? '';
+      final hasKeyword = pageText.contains(keyword);
       if (hasKeyword) {
         throw BookSourceException('列表选择器没有匹配到任何条目，检查列表规则');
       }
