@@ -67,6 +67,15 @@ class LibrarySync {
     return documents;
   }
 
+  /// 只数文档数量，不构造 JSON。
+  ///
+  /// 界面上「本机 N 份文档待比较」每次重建都要用；为了一个数字把整个书架编码
+  /// 一遍，一千本书就是一千次 JSON 序列化。
+  int documentCount() {
+    final noteBooks = {for (final note in notes.all()) note.bookId};
+    return books.all().length + noteBooks.length;
+  }
+
   /// 应用一份云端文档。返回 `false` 表示本机没有落地的条件。
   ///
   /// 落不了地的两种情形都跟「文件不在本机」有关：书本身没有文件，或者笔记所属

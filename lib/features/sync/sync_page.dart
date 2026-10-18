@@ -42,11 +42,10 @@ class _SyncPageState extends ConsumerState<SyncPage> {
     final endpoint = repo.activeOf(ServiceKind.sync);
     // 密钥不在端点记录里，要单独取。
     final secret = endpoint == null ? '' : repo.readSecret(endpoint.id);
-    final library = LibrarySync(
+    final documentCount = LibrarySync(
       books: ref.read(bookRepositoryProvider),
       notes: ref.read(noteRepositoryProvider),
-    );
-    final documents = library.collect();
+    ).documentCount();
 
     return Scaffold(
       appBar: AppBar(title: const Text('云同步')),
@@ -93,7 +92,7 @@ class _SyncPageState extends ConsumerState<SyncPage> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
-                '本机 ${documents.length} 份文档待比较',
+                '本机 $documentCount 份文档待比较',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ),
