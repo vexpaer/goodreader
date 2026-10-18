@@ -287,6 +287,14 @@ class SettingsPage extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
+                  leading: const Icon(Icons.rss_feed),
+                  title: const Text('书源'),
+                  subtitle: const Text('用规则从网页取书，不加脚本'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/sources'),
+                ),
+                const Divider(height: 1),
+                ListTile(
                   leading: const Icon(Icons.sync),
                   title: const Text('云同步'),
                   subtitle: const Text('书目、进度与笔记同步到自己的网盘'),

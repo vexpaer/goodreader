@@ -8,6 +8,8 @@ import '../../data/models/book.dart';
 import '../../data/models/chapter.dart';
 import '../../data/models/note.dart';
 import '../../data/repositories/settings_repository.dart';
+import '../../services/booksource/book_source.dart';
+import '../../services/booksource/source_document.dart';
 import '../../services/native_service.dart';
 import '../../services/tts_service.dart';
 import '../../state/providers.dart';
@@ -123,6 +125,7 @@ class _ReaderPageState extends ConsumerState<ReaderPage> {
         BookFormat.txt =>
           await TxtDocument.open(book.filePath, rule: book.chapterRule),
         BookFormat.epub => await EpubDocument.open(book.filePath),
+        BookFormat.web => await _openFromSource(book),
         _ => throw BookParseException(
             '${book.format.label} 阅读引擎将在后续版本开放，当前支持 TXT / EPUB。',
           ),
@@ -177,6 +180,26 @@ class _ReaderPageState extends ConsumerState<ReaderPage> {
         _loading = false;
       });
     }
+  }
+
+  /// 打开一本书源书。
+  ///
+  /// 目录优先用导入时存下的那份，省一次请求；书源被删掉时给出能照着做的提示，
+  /// 而不是一个空书架。
+  Future<ReaderDocument> _openFromSource(Book book) async {
+    final ref0 = SourceBookRef.decode(book.filePath);
+    if (ref0 == null) {
+      throw BookParseException('这本书的书源信息损坏，删除后重新搜索加入');
+    }
+    final source = ref.read(bookSourceRepositoryProvider).byId(ref0.sourceId);
+    if (source == null) {
+      throw BookParseException('书源已删除，重新添加书源后再打开这本书');
+    }
+    return SourceDocument.open(
+      source: source,
+      bookUrl: ref0.bookUrl,
+      chapters: ref.read(bookRepositoryProvider).chaptersOf(book.id)?.chapters,
+    );
   }
 
   /// Applies brightness and keep-screen-on preferences for this book.

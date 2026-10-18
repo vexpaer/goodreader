@@ -1,7 +1,10 @@
 import 'package:hive/hive.dart';
 
 /// Supported book formats.
-enum BookFormat { txt, epub, pdf, mobi, azw3, cbz, unknown }
+/// [web] 是书源书：正文来自网络，本地没有文件。
+///
+/// 只能往后追加。持久化存的是下标，插在中间会让老用户的书全变成别的格式。
+enum BookFormat { txt, epub, pdf, mobi, azw3, cbz, unknown, web }
 
 extension BookFormatX on BookFormat {
   String get label => switch (this) {
@@ -12,6 +15,7 @@ extension BookFormatX on BookFormat {
         BookFormat.azw3 => 'AZW3',
         BookFormat.cbz => 'CBZ',
         BookFormat.unknown => '?',
+        BookFormat.web => '书源',
       };
 
   static BookFormat fromExtension(String ext) => switch (ext.toLowerCase()) {

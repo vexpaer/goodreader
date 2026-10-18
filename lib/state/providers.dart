@@ -9,6 +9,7 @@ import '../data/models/book.dart';
 import '../data/models/note.dart';
 import '../data/models/reading_session.dart';
 import '../data/repositories/book_repository.dart';
+import '../data/repositories/book_source_repository.dart';
 import '../data/repositories/border_repository.dart';
 import '../data/repositories/service_provider_repository.dart';
 import '../data/repositories/note_repository.dart';
@@ -54,6 +55,9 @@ final borderRepositoryProvider =
 
 final serviceProviderRepositoryProvider =
     Provider<ServiceProviderRepository>((_) => ServiceProviderRepository());
+
+final bookSourceRepositoryProvider =
+    Provider<BookSourceRepository>((_) => BookSourceRepository());
 
 // ---------------------------------------------------------------------------
 // Settings

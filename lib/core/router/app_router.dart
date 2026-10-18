@@ -7,6 +7,9 @@ import '../../features/reader/reader_page.dart';
 import '../../features/settings/update_page.dart';
 import '../../features/share/border_designer_page.dart';
 import '../../features/ai/ai_chat_page.dart';
+import '../../features/booksource/booksource_editor_page.dart';
+import '../../features/booksource/booksource_page.dart';
+import '../../features/booksource/booksource_search_page.dart';
 import '../../features/services/service_providers_page.dart';
 import '../../features/sync/sync_page.dart';
 import '../../features/transfer/wifi_transfer_page.dart';
@@ -22,6 +25,26 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/update',
       builder: (context, state) => const UpdatePage(),
+    ),
+    GoRoute(
+      path: '/sources',
+      builder: (context, state) => const BookSourcePage(),
+    ),
+    GoRoute(
+      path: '/sources/edit',
+      builder: (context, state) => const BookSourceEditorPage(),
+    ),
+    GoRoute(
+      path: '/sources/edit/:id',
+      builder: (context, state) => BookSourceEditorPage(
+        sourceId: state.pathParameters['id'],
+      ),
+    ),
+    GoRoute(
+      path: '/sources/search/:id',
+      builder: (context, state) => BookSourceSearchPage(
+        sourceId: state.pathParameters['id']!,
+      ),
     ),
     GoRoute(
       path: '/sync',

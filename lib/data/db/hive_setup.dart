@@ -16,6 +16,7 @@ class HiveBoxes {
   static const serviceEndpoints = 'serviceEndpoints';
   static const serviceSecrets = 'serviceSecrets';
   static const aiConversations = 'aiConversations';
+  static const bookSources = 'bookSources';
 }
 
 class HiveSetup {
@@ -41,6 +42,7 @@ class HiveSetup {
       Hive.openBox<dynamic>(HiveBoxes.serviceEndpoints),
       Hive.openBox<dynamic>(HiveBoxes.serviceSecrets),
       Hive.openBox<dynamic>(HiveBoxes.aiConversations),
+      Hive.openBox<dynamic>(HiveBoxes.bookSources),
     ]);
 
     _ready = true;
