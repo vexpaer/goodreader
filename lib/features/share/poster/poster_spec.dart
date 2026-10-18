@@ -257,7 +257,11 @@ String truncateForPoster(String text, {int maxChars = 220}) {
 /// 有原文用原文，只有想法用想法：想法类笔记常常没有划线（用户直接写一段话），
 /// 这时候正文就是那段话。
 PosterSpec specForNote({required BookNote note, Book? book}) {
-  final quote = note.text.trim().isNotEmpty ? note.text : note.note;
+  // 在这里就 trim 掉：规格值应该是「要画什么」的干净版本，留着头尾空白的话
+  // 只有渲染层知道要清，任何别的消费方都会拿到脏数据。
+  final quote = note.text.trim().isNotEmpty
+      ? note.text.trim()
+      : note.note.trim();
   // 用 author 而不是 displayAuthor：后者在作者为空时会补「佚名」，
   // 而海报上印一个「佚名」不如什么都不印。
   final author = book?.author.trim() ?? '';
@@ -277,7 +281,7 @@ PosterSpec specForNote({required BookNote note, Book? book}) {
 /// 从一本书生成书籍卡。
 PosterSpec specForBook(Book book) => PosterSpec(
       kind: PosterKind.book,
-      title: book.title,
-      body: book.intro,
+      title: book.title.trim(),
+      body: book.intro.trim(),
       footer: [book.displayAuthor, book.format.label].join(' · '),
     );
