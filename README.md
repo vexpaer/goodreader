@@ -14,6 +14,9 @@
 | 模块 | 状态 | 说明 |
 | --- | --- | --- |
 | 书架 | ✅ | 网格 / 列表 / 极简三视图，标签、收藏、私密书籍、排序、搜索 |
+| 书架陈列 | ✅ | 封面书脊光影、每行立体书架、仅封面、按宽度自动列数（或固定 3–6 列） |
+| 底栏 | ✅ | 项目与顺序可配、图标可选文字、固定磨砂 / 悬浮玻璃、高度可调、独立深浅色 |
+| 主题配色 | ✅ | 10 套（色值取自目标应用主题预览图的实测主色），带名字可选 |
 | 导入 | ✅ | TXT、EPUB；自动解析书名 / 作者 / 简介 / 封面 / 目录 |
 | TXT 引擎 | ✅ | 智能分章（中文章节名正则），UTF-8 / UTF-16 / GBK 自动识别 |
 | EPUB 引擎 | ✅ | 自研 ZIP + OPF 解析，spine 章节顺序，NCX / EPUB3 nav 目录标题 |
@@ -85,6 +88,8 @@ flutter build apk --release --split-per-abi
 - 自研 **简繁转换**（`lib/features/reader/convert/`）：Unicode Unihan 单字表 + OpenCC 词组表，**全部映射等长**，因此切换简繁不会让划线错位
 - 自研 **九宫格切割模型**（`lib/data/models/stretch_border.dart`）：边框花纹图按四角 / 四边 / 中心切分，四个角永远不被拉伸；原图比例、可拉伸矩形、安全框分属三个独立概念，页面缩放时互不推导
 - 自研 **文件头解析**（`lib/data/services/image_header.dart`）：不解码像素读出 PNG / JPEG / WebP 的宽高，避开这一版 Flutter 没有失败回调的图片解码器
+- 自研 **底栏配置模型**（`lib/data/models/bottom_bar.dart`）：顺序里永远含全部槽位、另存一份隐藏集，关掉的项不会丢位置；全关时退回只显示书架
+- 自研 **书架陈列模型**（`lib/data/models/shelf_appearance.dart`）：网格宽高比与格子排版用同一组常量算出，行高写死，避免溢出
 - 自研 **书源引擎**（`lib/services/booksource/`）：规则串 `选择器[@属性][##正则##替换]`，**不执行脚本**——书源是第三方配置，能执行代码的书源等于把设备交出去
 - 自研 **SigV4 签名**（`lib/services/sync/s3_backend.dart`）：用 AWS 官方的 `get-vanilla` 向量逐字节校验后才用
 - 自研 **同步编排**（`lib/services/sync/`）：只认识文档，不认识 WebDAV 还是 S3；`apply` 返回布尔，落不了地的不算下载
