@@ -287,6 +287,22 @@ class SettingsPage extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
+                  leading: const Icon(Icons.sync),
+                  title: const Text('云同步'),
+                  subtitle: const Text('书目、进度与笔记同步到自己的网盘'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/sync'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.wifi_tethering),
+                  title: const Text('Wi-Fi 传书'),
+                  subtitle: const Text('同一网络下用浏览器上传书籍'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/transfer'),
+                ),
+                const Divider(height: 1),
+                ListTile(
                   leading: const Icon(Icons.crop_free),
                   title: const Text('边框图库'),
                   subtitle: const Text('为分享海报设计可伸缩的边框花纹'),

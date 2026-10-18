@@ -32,17 +32,21 @@ class SyncService {
 
   /// 本地文档由调用方从各仓储汇总，[apply] 在需要采纳云端版本时被调用。
   ///
-  /// 冲突（两端都改过同一条）按较新的一侧胜出，只计数不打断同步。
-  /// 静默丢数据比弹窗让用户一直点确定好。
+  /// [apply] 返回 `false` 表示这份文档收下了但落不了地（例如云端有一本书的
+  /// 记录，本机没有对应的文件）。这种情况不计入下载数，否则界面会告诉用户
+  /// 「下载 3 项」而实际什么都没变。
+  ///
+  /// 两端内容不同时按时间戳定胜负，只计数不打断同步。静默按较新一侧合并，
+  /// 比每条冲突弹一次窗、让用户一直点确定要好。
   Future<SyncReport> run({
     required SyncBackend backend,
     required List<SyncDocument> local,
-    required void Function(SyncDocument) apply,
+    required Future<bool> Function(SyncDocument) apply,
     String directory = 'goodreader',
   }) async {
     var uploaded = 0;
     var downloaded = 0;
-    var conflicts = 0;
+    var diverged = 0;
 
     await backend.ensureDirectory(directory);
     final remoteNames = {
@@ -62,26 +66,26 @@ class SyncService {
           uploaded++;
         case SyncVerdict.download:
           document.payload = remote!;
-          apply(document);
-          downloaded++;
+          if (await apply(document)) downloaded++;
         case SyncVerdict.unknown:
           break;
       }
 
-      if (remote != null && verdict != SyncVerdict.identical) conflicts++;
+      if (remote != null && verdict != SyncVerdict.identical) diverged++;
     }
 
     for (final name in remoteNames.difference(localNames)) {
       final content = await backend.get('$directory/$name');
       if (content == null) continue;
-      apply(SyncDocument(path: name, payload: content));
-      downloaded++;
+      if (await apply(SyncDocument(path: name, payload: content))) {
+        downloaded++;
+      }
     }
 
     return SyncReport(
       uploaded: uploaded,
       downloaded: downloaded,
-      conflicts: conflicts,
+      diverged: diverged,
       message: '上传 $uploaded 项，下载 $downloaded 项',
     );
   }

@@ -8,6 +8,8 @@ import '../../features/settings/update_page.dart';
 import '../../features/share/border_designer_page.dart';
 import '../../features/ai/ai_chat_page.dart';
 import '../../features/services/service_providers_page.dart';
+import '../../features/sync/sync_page.dart';
+import '../../features/transfer/wifi_transfer_page.dart';
 import '../../features/share/border_gallery_page.dart';
 
 final appRouter = GoRouter(
@@ -20,6 +22,14 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/update',
       builder: (context, state) => const UpdatePage(),
+    ),
+    GoRoute(
+      path: '/sync',
+      builder: (context, state) => const SyncPage(),
+    ),
+    GoRoute(
+      path: '/transfer',
+      builder: (context, state) => const WifiTransferPage(),
     ),
     GoRoute(
       path: '/borders',

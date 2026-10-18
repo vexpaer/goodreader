@@ -107,7 +107,10 @@ void main() {
       final report = await service.run(
         backend: backend,
         local: local,
-        apply: applied.add,
+        apply: (doc) async {
+          applied.add(doc);
+          return true;
+        },
       );
 
       expect(report.uploaded, 1);
@@ -127,7 +130,10 @@ void main() {
       final report = await service.run(
         backend: backend,
         local: local,
-        apply: applied.add,
+        apply: (doc) async {
+          applied.add(doc);
+          return true;
+        },
       );
 
       expect(report.uploaded, 0);
@@ -140,26 +146,26 @@ void main() {
       expect(backend.files['goodreader/notes.json'], doc(200, 'remote'));
     });
 
-    test('两端都改过同一条计入冲突', () async {
+    test('两端内容不同计入分歧', () async {
       final backend = FakeBackend(files: {
         'goodreader/a.json': doc(200, 'remote'),
       });
       final report = await service.run(
         backend: backend,
         local: [SyncDocument(path: 'a.json', payload: doc(100, 'local'))],
-        apply: (_) {},
+        apply: (_) async => true,
       );
-      expect(report.conflicts, 1);
+      expect(report.diverged, 1);
     });
 
-    test('内容一致不计冲突也不传输', () async {
+    test('内容一致不计分歧也不传输', () async {
       final backend = FakeBackend(files: {'goodreader/a.json': doc(1, 'same')});
       final report = await service.run(
         backend: backend,
         local: [SyncDocument(path: 'a.json', payload: doc(1, 'same'))],
-        apply: (_) {},
+        apply: (_) async => true,
       );
-      expect(report.conflicts, 0);
+      expect(report.diverged, 0);
       expect(report.uploaded, 0);
       expect(report.downloaded, 0);
       expect(report.isEmpty, isTrue);
@@ -173,7 +179,10 @@ void main() {
       final report = await service.run(
         backend: backend,
         local: local,
-        apply: applied.add,
+        apply: (doc) async {
+          applied.add(doc);
+          return true;
+        },
       );
 
       expect(report.uploaded, 0);
@@ -190,10 +199,28 @@ void main() {
       final report = await service.run(
         backend: backend,
         local: const [],
-        apply: applied.add,
+        apply: (doc) async {
+          applied.add(doc);
+          return true;
+        },
       );
       expect(report.downloaded, 1);
       expect(applied.single.path, 'stats.json');
+    });
+
+    test('收下了但落不了地的文档不计入下载', () async {
+      // 云端有一本书的记录，本机没有这本书的文件。记录留不下任何痕迹，
+      // 所以不能告诉用户「下载了 1 项」。
+      final backend = FakeBackend(files: {
+        'goodreader/books/x.json': doc(9, 'b'),
+      });
+      final report = await service.run(
+        backend: backend,
+        local: const [],
+        apply: (_) async => false,
+      );
+      expect(report.downloaded, 0);
+      expect(report.isEmpty, isTrue);
     });
 
     test('目录固定带前缀，不会把丛书根目录的文件当成自己的', () async {
@@ -202,7 +229,14 @@ void main() {
         'other/b.json': doc(9, 's'),
       });
       final applied = <SyncDocument>[];
-      await service.run(backend: backend, local: const [], apply: applied.add);
+      await service.run(
+        backend: backend,
+        local: const [],
+        apply: (doc) async {
+          applied.add(doc);
+          return true;
+        },
+      );
       expect(applied.map((d) => d.path), ['a.json']);
     });
 
@@ -212,7 +246,7 @@ void main() {
         service.run(
           backend: backend,
           local: [SyncDocument(path: 'a.json', payload: doc(1, 'a'))],
-          apply: (_) {},
+          apply: (_) async => true,
         ),
         throwsA(isA<SyncException>()),
       );

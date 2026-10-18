@@ -22,22 +22,24 @@ class SyncException implements Exception {
   String toString() => 'SyncException: $message';
 }
 
-/// 一次同步的结果统计。[conflicts] 是两端都改过的条目数。
+/// 一次同步的结果统计。
+///
+/// [diverged] 是两端内容不同、由时间戳定胜负的条目数。没有基线版本时无法
+/// 区分「只有一侧改过」和「两侧都改过」，所以不叫冲突，只叫分歧。
 class SyncReport {
   const SyncReport({
     this.uploaded = 0,
     this.downloaded = 0,
-    this.conflicts = 0,
+    this.diverged = 0,
     this.message = '',
   });
 
   final int uploaded;
   final int downloaded;
-  final int conflicts;
+  final int diverged;
   final String message;
 
-  bool get isEmpty =>
-      uploaded == 0 && downloaded == 0 && conflicts == 0;
+  bool get isEmpty => uploaded == 0 && downloaded == 0 && diverged == 0;
 }
 
 /// 同步后端。WebDAV 与 S3 只是同一组操作的两种实现。
