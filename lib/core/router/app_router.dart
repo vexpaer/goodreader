@@ -10,6 +10,7 @@ import '../../features/ai/ai_chat_page.dart';
 import '../../features/booksource/booksource_editor_page.dart';
 import '../../features/booksource/booksource_page.dart';
 import '../../features/booksource/booksource_search_page.dart';
+import '../../features/ocr/ocr_page.dart';
 import '../../features/services/service_providers_page.dart';
 import '../../features/sync/sync_page.dart';
 import '../../features/transfer/wifi_transfer_page.dart';
@@ -25,6 +26,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/update',
       builder: (context, state) => const UpdatePage(),
+    ),
+    GoRoute(
+      path: '/ocr',
+      builder: (context, state) => const OcrPage(),
     ),
     GoRoute(
       path: '/sources',

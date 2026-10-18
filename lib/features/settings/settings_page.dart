@@ -287,6 +287,14 @@ class SettingsPage extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
+                  leading: const Icon(Icons.document_scanner_outlined),
+                  title: const Text('图片转文字'),
+                  subtitle: const Text('识别书页照片，结果可以存成一本书'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/ocr'),
+                ),
+                const Divider(height: 1),
+                ListTile(
                   leading: const Icon(Icons.rss_feed),
                   title: const Text('书源'),
                   subtitle: const Text('用规则从网页取书，不加脚本'),
