@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
 import '../db/hive_setup.dart';
+import '../../core/theme/app_accents.dart';
+import '../models/bottom_bar.dart';
+import '../models/shelf_appearance.dart';
 import '../models/text_conversion.dart';
 
 /// Built-in reader background themes.
@@ -319,7 +322,7 @@ class ReaderMacros {
 class AppSettings {
   AppSettings({
     this.themeMode = ThemeMode.system,
-    this.seedColor = 0xFF1F6FEB,
+    this.seedColor = defaultAccentSeed,
     this.shelfView = ShelfView.grid,
     this.coverFill = CoverFill.crop,
     this.dailyGoalMinutes = 30,
@@ -331,7 +334,10 @@ class AppSettings {
     this.autoTtsNextChapter = true,
     this.privacyMode = false,
     this.locale = 'zh',
-  });
+    BottomBarConfig? bottomBar,
+    ShelfAppearance? shelf,
+  })  : bottomBar = bottomBar ?? BottomBarConfig(),
+        shelf = shelf ?? const ShelfAppearance();
 
   ThemeMode themeMode;
   int seedColor;
@@ -347,6 +353,13 @@ class AppSettings {
   bool privacyMode;
   String locale;
 
+  /// 底栏配置。整份存成一个嵌套 Map，而不是拆成七八个平铺字段：
+  /// 拆开之后每次加一个底栏选项都要动一次存取两边，还容易漏。
+  BottomBarConfig bottomBar;
+
+  /// 书架陈列方式。同样整份存成嵌套 Map。
+  ShelfAppearance shelf;
+
   Map<String, dynamic> toMap() => {
         'themeMode': themeMode.index,
         'seedColor': seedColor,
@@ -361,6 +374,8 @@ class AppSettings {
         'autoTtsNextChapter': autoTtsNextChapter,
         'privacyMode': privacyMode,
         'locale': locale,
+        'bottomBar': bottomBar.toMap(),
+        'shelf': shelf.toMap(),
       };
 
   static AppSettings fromMap(Map<dynamic, dynamic>? m) {
@@ -372,7 +387,7 @@ class AppSettings {
 
     return AppSettings(
       themeMode: ThemeMode.values[pick('themeMode', ThemeMode.system.index)],
-      seedColor: pick('seedColor', 0xFF1F6FEB),
+      seedColor: pick('seedColor', defaultAccentSeed),
       shelfView: ShelfView.values[pick('shelfView', 0)],
       coverFill: CoverFill.values[pick('coverFill', CoverFill.crop.index)],
       dailyGoalMinutes: pick('dailyGoalMinutes', 30),
@@ -384,6 +399,8 @@ class AppSettings {
       autoTtsNextChapter: pick('autoTtsNextChapter', true),
       privacyMode: pick('privacyMode', false),
       locale: pick('locale', 'zh'),
+      bottomBar: BottomBarConfig.fromMap(m['bottomBar']),
+      shelf: ShelfAppearance.fromMap(m['shelf']),
     );
   }
 }

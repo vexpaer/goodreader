@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../data/models/book.dart';
+import '../../data/models/shelf_appearance.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../state/providers.dart';
 import 'widgets/book_cover.dart';
+import 'widgets/shelf_ledge.dart';
 
 class BookshelfPage extends ConsumerStatefulWidget {
   const BookshelfPage({super.key});
@@ -67,6 +69,7 @@ class _BookshelfPageState extends ConsumerState<BookshelfPage> {
     final settings = ref.watch(settingsControllerProvider);
     final books = controller.visible;
     final view = settings.app.shelfView;
+    final appearance = settings.app.shelf;
 
     return Scaffold(
       appBar: AppBar(
@@ -137,9 +140,12 @@ class _BookshelfPageState extends ConsumerState<BookshelfPage> {
       body: books.isEmpty
           ? const _EmptyShelf()
           : switch (view) {
-              ShelfView.grid => _GridView(books: books),
-              ShelfView.list => _ListView(books: books, compact: false),
-              ShelfView.compact => _ListView(books: books, compact: true),
+              ShelfView.grid =>
+                _GridView(books: books, appearance: appearance),
+              ShelfView.list =>
+                _ListView(books: books, compact: false, appearance: appearance),
+              ShelfView.compact =>
+                _ListView(books: books, compact: true, appearance: appearance),
             },
     );
   }
@@ -212,34 +218,50 @@ class _EmptyShelf extends StatelessWidget {
 }
 
 class _GridView extends StatelessWidget {
-  const _GridView({required this.books});
+  const _GridView({required this.books, required this.appearance});
 
   final List<Book> books;
+  final ShelfAppearance appearance;
+
+  static const _padding = EdgeInsets.fromLTRB(16, 12, 16, 96);
+  static const _spacing = 14.0;
 
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
-      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 150,
-        childAspectRatio: 0.56,
-        crossAxisSpacing: 14,
-        mainAxisSpacing: 18,
-      ),
-      itemCount: books.length,
-      itemBuilder: (context, i) => _GridTile(book: books[i]),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final available = constraints.maxWidth - _padding.horizontal;
+        final columns = appearance.columnsFor(available);
+        final itemWidth = (available - _spacing * (columns - 1)) / columns;
+
+        return GridView.builder(
+          padding: _padding,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: columns,
+            crossAxisSpacing: _spacing,
+            // 有横条时行距压小：横条本身就是行与行之间的分隔。
+            mainAxisSpacing: appearance.ledge ? 10 : 18,
+            childAspectRatio: appearance.aspectRatioFor(itemWidth),
+          ),
+          itemCount: books.length,
+          itemBuilder: (context, i) =>
+              _GridTile(book: books[i], appearance: appearance),
+        );
+      },
     );
   }
 }
 
 class _GridTile extends ConsumerWidget {
-  const _GridTile({required this.book});
+  const _GridTile({required this.book, required this.appearance});
 
   final Book book;
+  final ShelfAppearance appearance;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final fit = ref.watch(settingsControllerProvider).app.coverFill.boxFit;
+
     return InkWell(
       borderRadius: BorderRadius.circular(12),
       onTap: () => context.push('/reader/${book.id}'),
@@ -256,6 +278,7 @@ class _GridTile extends ConsumerWidget {
                     width: c.maxWidth,
                     height: c.maxHeight,
                     fit: fit,
+                    spineLight: appearance.spineLight,
                   ),
                   if (book.progress > 0)
                     Positioned(
@@ -304,23 +327,33 @@ class _GridTile extends ConsumerWidget {
               ),
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            book.title,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            book.displayAuthor,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 11,
-              color: Theme.of(context).colorScheme.outline,
+          if (appearance.ledge) const ShelfLedge(),
+          if (!appearance.coverOnly) ...[
+            const SizedBox(height: 8),
+            // 行高写死，网格的格子高度是按 ShelfAppearance 里的常量算的，
+            // 这里用默认行高会让实际排版比算出来的高几像素，然后溢出。
+            Text(
+              book.title,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 13,
+                height: 1.25,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-          ),
+            const SizedBox(height: 2),
+            Text(
+              book.displayAuthor,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11,
+                height: 1.2,
+                color: Theme.of(context).colorScheme.outline,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -328,10 +361,15 @@ class _GridTile extends ConsumerWidget {
 }
 
 class _ListView extends StatelessWidget {
-  const _ListView({required this.books, required this.compact});
+  const _ListView({
+    required this.books,
+    required this.compact,
+    required this.appearance,
+  });
 
   final List<Book> books;
   final bool compact;
+  final ShelfAppearance appearance;
 
   @override
   Widget build(BuildContext context) {
@@ -344,7 +382,13 @@ class _ListView extends StatelessWidget {
         return ListTile(
           leading: compact
               ? null
-              : BookCover(book: book, width: 44, height: 60, radius: 6),
+              : BookCover(
+                  book: book,
+                  width: 44,
+                  height: 60,
+                  radius: 6,
+                  spineLight: appearance.spineLight,
+                ),
           title: Text(
             book.title,
             maxLines: 1,

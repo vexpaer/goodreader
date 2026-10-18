@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../features/book_detail/book_detail_page.dart';
 import '../../features/home/home_shell.dart';
 import '../../features/reader/reader_page.dart';
+import '../../features/settings/bottom_bar_page.dart';
+import '../../features/settings/shelf_display_page.dart';
 import '../../features/settings/update_page.dart';
 import '../../features/share/border_designer_page.dart';
 import '../../features/ai/ai_chat_page.dart';
@@ -26,6 +28,14 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/update',
       builder: (context, state) => const UpdatePage(),
+    ),
+    GoRoute(
+      path: '/shelf-display',
+      builder: (context, state) => const ShelfDisplayPage(),
+    ),
+    GoRoute(
+      path: '/bottom-bar',
+      builder: (context, state) => const BottomBarSettingsPage(),
     ),
     GoRoute(
       path: '/ocr',

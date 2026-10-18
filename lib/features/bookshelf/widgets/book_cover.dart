@@ -13,6 +13,7 @@ class BookCover extends StatelessWidget {
     this.height = 160,
     this.radius = 10,
     this.fit = BoxFit.cover,
+    this.spineLight = false,
   });
 
   final Book book;
@@ -20,6 +21,13 @@ class BookCover extends StatelessWidget {
   final double height;
   final double radius;
   final BoxFit fit;
+
+  /// 在封面左侧压一道书脊光影。
+  ///
+  /// 真的书脊是封面折进去的那一条：靠近书脊的地方最暗，往右一条窄高光，然后
+  /// 过渡到封面本身。用三段渐变就能读出来，不需要贴图。宽度按封面宽度取比例，
+  /// 列表里 44 宽的缩略图也有同样的效果。
+  final bool spineLight;
 
   static const _palette = [
     [Color(0xFF1F6FEB), Color(0xFF4A9BFF)],
@@ -55,7 +63,43 @@ class BookCover extends StatelessWidget {
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(radius),
-      child: SizedBox(width: width, height: height, child: child),
+      child: SizedBox(
+        width: width,
+        height: height,
+        child: spineLight
+            ? Stack(
+                fit: StackFit.expand,
+                children: [
+                  child,
+                  IgnorePointer(child: _spine()),
+                ],
+              )
+            : child,
+      ),
+    );
+  }
+
+  /// 书脊光影。最左最暗，约三分之一处一道窄高光，然后淡出。
+  Widget _spine() {
+    final band = (width * 0.14).clamp(6.0, 18.0);
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: SizedBox(
+        width: band,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.black.withOpacity(0.34),
+                Colors.black.withOpacity(0.16),
+                Colors.white.withOpacity(0.16),
+                Colors.white.withOpacity(0.0),
+              ],
+              stops: const [0.0, 0.34, 0.52, 1.0],
+            ),
+          ),
+        ),
+      ),
     );
   }
 

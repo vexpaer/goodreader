@@ -3,22 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/app_info.dart';
+import '../../core/theme/app_accents.dart';
+import '../../data/models/shelf_appearance.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../state/providers.dart';
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
-
-  static const _seedColors = [
-    0xFF1F6FEB,
-    0xFF7C4DFF,
-    0xFF00897B,
-    0xFFE64A19,
-    0xFFAD1457,
-    0xFF455A64,
-    0xFF827717,
-    0xFF3949AB,
-  ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -62,41 +53,40 @@ class SettingsPage extends ConsumerWidget {
                       const Text('主题色', style: TextStyle(fontSize: 13)),
                       const SizedBox(height: 12),
                       Wrap(
-                        spacing: 12,
+                        spacing: 14,
                         runSpacing: 12,
-                        children: _seedColors.map((c) {
-                          final selected = app.seedColor == c;
-                          return GestureDetector(
-                            onTap: () => controller.updateApp((a) => a.seedColor = c),
-                            child: Container(
-                              width: 36,
-                              height: 36,
-                              decoration: BoxDecoration(
-                                color: Color(c),
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: selected ? Colors.white : Colors.transparent,
-                                  width: 3,
-                                ),
-                                boxShadow: selected
-                                    ? [
-                                        BoxShadow(
-                                          color: Color(c).withOpacity(0.5),
-                                          blurRadius: 8,
-                                        ),
-                                      ]
-                                    : null,
+                        children: [
+                          for (final accent in appAccents)
+                            _AccentDot(
+                              accent: accent,
+                              selected: app.seedColor == accent.seed,
+                              onTap: () => controller.updateApp(
+                                (a) => a.seedColor = accent.seed,
                               ),
-                              child: selected
-                                  ? const Icon(Icons.check,
-                                      size: 18, color: Colors.white)
-                                  : null,
                             ),
-                          );
-                        }).toList(),
+                        ],
                       ),
                     ],
                   ),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.auto_awesome_mosaic_outlined),
+                  title: const Text('书架陈列'),
+                  subtitle: Text(_shelfSummary(app.shelf)),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/shelf-display'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.view_sidebar_outlined),
+                  title: const Text('底栏'),
+                  subtitle: Text(
+                    '${app.bottomBar.style.label} · ${app.bottomBar.visible.length} 项'
+                    '${app.bottomBar.showLabels ? ' · 带文字' : ' · 仅图标'}',
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/bottom-bar'),
                 ),
                 const Divider(height: 1),
                 ListTile(
@@ -475,4 +465,81 @@ class _RoadmapGroup extends StatelessWidget {
       ],
     );
   }
+}
+
+/// 一个配色变体。圆点下面是名字——目标应用的主题是有名字的变体，
+/// 只给色点的话用户没法说清自己想要哪一套。
+class _AccentDot extends StatelessWidget {
+  const _AccentDot({
+    required this.accent,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final AppAccent accent;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        width: 56,
+        child: Column(
+          children: [
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: accent.color,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: selected
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.outlineVariant,
+                  width: selected ? 3 : 1,
+                ),
+              ),
+              child: selected
+                  ? Icon(
+                      Icons.check,
+                      size: 17,
+                      color: accent.color.computeLuminance() > 0.55
+                          ? Colors.black87
+                          : Colors.white,
+                    )
+                  : null,
+            ),
+            const SizedBox(height: 5),
+            Text(
+              accent.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: selected
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.outline,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 设置页上那一行摘要。把当前开的开关列出来，比「已配置」有用。
+String _shelfSummary(ShelfAppearance shelf) {
+  final parts = <String>[
+    if (shelf.coverOnly) '仅封面',
+    if (shelf.ledge) '立体书架',
+    if (shelf.spineLight) '书脊光影',
+    shelf.columns == ShelfAppearance.autoColumns
+        ? '自动列数'
+        : '${shelf.columns} 列',
+  ];
+  return parts.join(' · ');
 }
