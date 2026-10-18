@@ -145,7 +145,7 @@ void main() {
     });
 
     test('超长且无标点时按字数截断并加省略号', () {
-      const long = '甲' * 300;
+      final long = '甲' * 300;
       final out = truncateForPoster(long, maxChars: 220);
       expect(out.length, 221);
       expect(out.endsWith('…'), isTrue);
@@ -211,7 +211,7 @@ void main() {
 
   group('copyWith', () {
     test('边框可以被清掉，别的字段不受影响', () {
-      final spec = const PosterSpec(borderAssetId: 'asset-1', body: '正文');
+      const spec = PosterSpec(borderAssetId: 'asset-1', body: '正文');
       expect(spec.copyWith(palette: PosterPalette.ink).borderAssetId, 'asset-1');
       expect(spec.copyWith(borderAssetId: null).borderAssetId, isNull);
       expect(spec.copyWith(borderAssetId: null).body, '正文');
