@@ -217,7 +217,7 @@ class _AddressCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -286,7 +286,7 @@ class _ErrorCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.error.withValues(alpha: 0.08),
+        color: theme.colorScheme.error.withOpacity(0.08),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
