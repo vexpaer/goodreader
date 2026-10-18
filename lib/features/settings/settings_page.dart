@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/app_info.dart';
 import '../../core/theme/app_accents.dart';
+import '../../data/models/bottom_bar.dart';
 import '../../data/models/shelf_appearance.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../state/providers.dart';

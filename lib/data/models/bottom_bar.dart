@@ -102,7 +102,7 @@ class BottomBarConfig {
     this.style = BottomBarStyle.fixed,
     this.showLabels = true,
     double narrowness = 0.35,
-    this.sideMargin = 16,
+    double sideMargin = 16,
     this.tint = BottomBarTint.inherit,
     List<BottomBarSlot>? order,
     Set<BottomBarSlot>? hidden,

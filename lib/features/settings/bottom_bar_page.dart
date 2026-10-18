@@ -64,7 +64,7 @@ class BottomBarSettingsPage extends ConsumerWidget {
             _Label('悬浮左右边距'),
             _Slider(
               value: config.sideMargin / 48,
-              label: '${config.sideMargin.toStringAsFixed(0)}',
+              label: config.sideMargin.toStringAsFixed(0),
               hint: '距离屏幕左右边缘的距离',
               onChanged: (value) =>
                   update(config.copyWith(sideMargin: value * 48)),
